@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_move_line_operation_tree_expiry_uf" model="ir.ui.view">
+        <field name="name">stock.move.line.inherit.tree.uf</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="product_expiry.view_stock_move_line_operation_tree_expiry"/>
+         <field name="arch" type="xml">
+            <xpath expr="//field[@name='expiration_date']" position="replace" >
+                <field name="expiration_date" force_save="1" column_invisible="not parent.use_expiration_date or parent.picking_code != 'incoming'" />
+                 <field name="document_serialnumber_filename" invisible="1" column_invisible="1"/>
+                 <field name="document_serialnumber" force_save="1" widget="binary" filename="private_key_filename" readonly="0" column_invisible="not parent.use_expiration_date or parent.picking_code != 'incoming'" />
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_move_line_detailed_operation_tree_expiry_uf" model="ir.ui.view">
+        <field name="name">stock.move.line.operations.inherit.tree.uf</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="product_expiry.view_stock_move_line_detailed_operation_tree_expiry"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='expiration_date']" position="replace">
+                
+                <field name="expiration_date" force_save="1" column_invisible="parent.picking_type_code != 'incoming'" />
+                 <field name="document_serialnumber_filename" invisible="1" force_save="1" column_invisible="1" />
+                 <field name="document_serialnumber" force_save="1" widget="binary" filename="document_serialnumber_filename" readonly="0" column_invisible="not parent.use_expiration_date or parent.picking_code != 'incoming'" />
+            </xpath>
+        </field>
+    </record>
+
+   <record id="view_move_form_document_serialnumber" model="ir.ui.view">
+        <field name="name">stock.production.lot.inherit.form.document_serialnumber</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form" />
+        <field name="arch" type="xml">
+        <xpath expr="//div[hasclass('oe_title')]" position="inside">
+                 <field name="document_serialnumber_filename" invisible="1"/>
+                 <field name="document_serialnumber" force_save="1" widget="binary" filename="document_serialnumber_filename"   />
+        </xpath>
+        </field>
+    </record>
+
+  <record id="view_view_picking_form_x_studio_binary_field_2qf_1hgi0u1nt" model="ir.ui.view">
+        <field name="name">stock.picking.inherit.form.x_studio_binary_field_2qf_1hgi0u1nt</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+        <xpath expr="//field[@name='owner_id']" position="after">
+                 <field name="x_studio_binary_field_2qf_1hgi0u1nt_filename" invisible="1"/>
+                 <field name="x_studio_binary_field_2qf_1hgi0u1nt" force_save="1" widget="binary" filename="document_analisi_filename"   />
+        </xpath>
+        </field>
+    </record>
+
+    <record id="view_view_picking_tree_x_studio_binary_field_2qf_1hgi0u1nt" model="ir.ui.view">
+        <field name="name">stock.picking.inherit.tree.x_studio_binary_field_2qf_1hgi0u1nt</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+              <field name="x_studio_binary_field_2qf_1hgi0u1nt_filename" optional="show"/>
+                 <field name="x_studio_binary_field_2qf_1hgi0u1nt" force_save="1" widget="binary" filename="document_analisi_filename"  optional="show" />
+
+              </xpath>
+        </field>
+    </record>
+
+
+
+    
+</odoo>
