@@ -263,7 +263,7 @@
               <t t-foreach="set(lots)" t-as="lot">
                 <t t-if="lot">
                   <t t-set="exp"
-                     t-value="lot.expiration_date or lot.use_date or lot.life_date"/>
+                     t-value="lot.expiration_date or lot.use_date"/>
                   <li>
                     <t t-if="exp">
                       <t t-esc="exp.strftime('%d/%m/%Y')"/>
@@ -296,7 +296,7 @@
             </div>
             <div class="col-3">
               <strong>Scadenza:</strong><br/>
-              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date or o.lot_producing_id.life_date"/>
+              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date"/>
               <t t-if="exp"><span t-esc="exp.strftime('%d/%m/%Y')"/></t>
               <t t-else="">-</t>
             </div>
@@ -313,7 +313,7 @@
                   <t t-if="lot">
                     <li>
                       <span t-esc="lot.name"/>
-                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date or lot.life_date"/>
+                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date"/>
                       <t t-if="exp"> — <span t-esc="exp.strftime('%d/%m/%Y')"/></t>
                     </li>
                   </t>
@@ -341,7 +341,7 @@
             </div>
             <div class="col-3">
               <strong>Scadenza:</strong><br/>
-              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date or o.lot_producing_id.life_date"/>
+              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date"/>
               <t t-if="exp"><span t-esc="exp.strftime('%d/%m/%Y')"/></t>
               <t t-else="">-</t>
             </div>
@@ -358,7 +358,7 @@
                   <t t-if="lot">
                     <li>
                       <span t-esc="lot.name"/>
-                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date or lot.life_date"/>
+                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date"/>
                       <t t-if="exp"> — <span t-esc="exp.strftime('%d/%m/%Y')"/></t>
                     </li>
                   </t>
