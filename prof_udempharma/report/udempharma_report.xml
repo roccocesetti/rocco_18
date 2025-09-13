@@ -196,16 +196,185 @@
 -->
 
 <odoo>
-    <template id="extend_report_picking_expiration_date" inherit_id="stock.report_picking">
-        <!-- Trova la colonna dove c'è il lotto barcode -->
-        <xpath expr="//td[contains(@class, 'text-center') and contains(@class, 'h6')]" position="inside">
-            <t t-if="ml.lot_id.expiration_date">
-                <br/>
-                <strong>Scadenza:</strong>
-                <t t-esc="ml.lot_id.expiration_date.strftime('%d/%m/%Y')"/>
-            </t>
-        </xpath>
+     <data>
+        <template id="extend_report_picking_expiration_date" inherit_id="stock.report_picking">
+            <!-- Trova la colonna dove c'è il lotto barcode -->
+            <xpath expr="//td[contains(@class, 'text-center') and contains(@class, 'h6')]" position="inside">
+                <t t-if="ml.lot_id.expiration_date">
+                    <br/>
+                    <strong>Scadenza:</strong>
+                    <t t-esc="ml.lot_id.expiration_date.strftime('%d/%m/%Y')"/>
+                </t>
+            </xpath>
+        </template>
+
+         <template id="report_traceability_inherit_header" inherit_id="stock.report_stock_body_print">
+              <xpath expr="//thead/tr[contains(concat(' ', normalize-space(@class), ' '), ' o_report_header ')]"
+                     position="replace">
+                <tr class="o_report_header">
+                  <th class="o_report_line_header">Reference</th>
+                  <th class="o_report_line_header">Product</th>
+                  <th class="o_report_line_header">Date</th>
+                  <th class="o_report_line_header">Lot/Serial #</th>
+                  <th class="o_report_line_header">Data scadenza</th> <!-- ex From -->
+                  <!-- ex To: rimosso -->
+                  <th class="o_report_line_header">Quantity</th>
+                </tr>
+            </xpath>
+         </template>
+
+
+
+           <template id="report_mrp_production_components_inherit_lot_exp"
+              inherit_id="mrp.report_mrp_production_components">
+
+      <!-- HEADER: dopo "Product" aggiungo "Lot/Serial" e "Expiration" -->
+      <xpath expr="//thead/tr/th[1]" position="after">
+        <th>Lotto</th>
+        <th>Scadenza</th>
+      </xpath>
+
+      <!-- BODY: dopo la 1ª <td> (Product) aggiungo due celle Lotto/Scadenza -->
+      <xpath expr="//tbody/tr[@t-foreach='o.move_raw_ids']/td[1]" position="after">
+        <!-- Lotto -->
+        <td>
+          <!-- prendo i lotti dalle move lines del componente -->
+          <t t-set="lots"
+             t-value="raw_line.move_line_ids.mapped('lot_id')"/>
+          <t t-if="lots">
+            <ul class="mb0">
+              <!-- evito duplicati -->
+              <t t-foreach="set(lots)" t-as="lot">
+                <t t-if="lot">
+                  <li><span t-esc="lot.name"/></li>
+                </t>
+              </t>
+            </ul>
+          </t>
+          <t t-else="">-</t>
+        </td>
+
+        <!-- Scadenza -->
+        <td>
+          <t t-set="lots"
+             t-value="raw_line.move_line_ids.mapped('lot_id')"/>
+          <t t-if="lots">
+            <ul class="mb0">
+              <t t-foreach="set(lots)" t-as="lot">
+                <t t-if="lot">
+                  <t t-set="exp"
+                     t-value="lot.expiration_date or lot.use_date or lot.life_date"/>
+                  <li>
+                    <t t-if="exp">
+                      <t t-esc="exp.strftime('%d/%m/%Y')"/>
+                    </t>
+                    <t t-else="">-</t>
+                  </li>
+                </t>
+              </t>
+            </ul>
+          </t>
+          <t t-else="">-</t>
+        </td>
+      </xpath>
+
     </template>
+
+        <template id="report_mrporder_inherit_lot_exp" inherit_id="mrp.report_mrporder">
+
+      <!-- Seleziona la riga info prodotto (quella che contiene <span t-field="o.product_id">) -->
+      <xpath expr="//div[contains(@class,'row') and contains(@class,'mt32') and contains(@class,'mb32')]
+                   [.//span[@t-field='o.product_id']][1]"
+             position="after">
+
+        <div class="row mt8">
+          <!-- Caso 1: lotto unico impostato sulla produzione -->
+          <t t-if="o.lot_producing_id">
+            <div class="col-3">
+              <strong>Lotto:</strong><br/>
+              <span t-field="o.lot_producing_id.name"/>
+            </div>
+            <div class="col-3">
+              <strong>Scadenza:</strong><br/>
+              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date or o.lot_producing_id.life_date"/>
+              <t t-if="exp"><span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+              <t t-else="">-</t>
+            </div>
+          </t>
+
+          <!-- Caso 2: nessun lotto fissato → elenco i lotti prodotti (state == 'done') -->
+          <t t-else="">
+            <div class="col-12">
+              <strong>Lotti prodotti:</strong>
+              <ul class="mb0">
+                <t t-set="lots_done"
+                   t-value="o.move_finished_ids.mapped('move_line_ids').filtered(lambda ml: ml.state == 'done').mapped('lot_id')"/>
+                <t t-foreach="set(lots_done)" t-as="lot">
+                  <t t-if="lot">
+                    <li>
+                      <span t-esc="lot.name"/>
+                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date or lot.life_date"/>
+                      <t t-if="exp"> — <span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+                    </li>
+                  </t>
+                </t>
+              </ul>
+            </div>
+          </t>
+        </div>
+
+      </xpath>
+        </template>
+            <template id="report_mrporder_inherit_lot_exp" inherit_id="mrp.report_mrporder">
+
+      <!-- Seleziona la riga info prodotto (quella che contiene <span t-field="o.product_id">) -->
+      <xpath expr="//div[contains(@class,'row') and contains(@class,'mt32') and contains(@class,'mb32')]
+                   [.//span[@t-field='o.product_id']][1]"
+             position="after">
+
+        <div class="row mt8">
+          <!-- Caso 1: lotto unico impostato sulla produzione -->
+          <t t-if="o.lot_producing_id">
+            <div class="col-3">
+              <strong>Lotto:</strong><br/>
+              <span t-field="o.lot_producing_id.name"/>
+            </div>
+            <div class="col-3">
+              <strong>Scadenza:</strong><br/>
+              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date or o.lot_producing_id.life_date"/>
+              <t t-if="exp"><span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+              <t t-else="">-</t>
+            </div>
+          </t>
+
+          <!-- Caso 2: nessun lotto fissato → elenco i lotti prodotti (state == 'done') -->
+          <t t-else="">
+            <div class="col-12">
+              <strong>Lots produced:</strong>
+              <ul class="mb0">
+                <t t-set="lots_done"
+                   t-value="o.move_finished_ids.mapped('move_line_ids').filtered(lambda ml: ml.state == 'done').mapped('lot_id')"/>
+                <t t-foreach="set(lots_done)" t-as="lot">
+                  <t t-if="lot">
+                    <li>
+                      <span t-esc="lot.name"/>
+                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date or lot.life_date"/>
+                      <t t-if="exp"> — <span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+                    </li>
+                  </t>
+                </t>
+              </ul>
+            </div>
+          </t>
+        </div>
+
+      </xpath>
+    </template>
+
+     </data>
+
+
+
 </odoo>
 
 
