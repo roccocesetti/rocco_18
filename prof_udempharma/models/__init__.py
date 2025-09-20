@@ -3,3 +3,4 @@
 
 from . import stock_move_line
 #from . import account_invoice
+from . import mrp_routing
