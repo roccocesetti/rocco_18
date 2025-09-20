@@ -9,7 +9,7 @@ from odoo.tools import float_round
 class MrpRoutingWorkcenter(models.Model):
     _inherit = "mrp.routing.workcenter"
 
-     time_cycle_second = fields.Float(
+    time_cycle_second = fields.Float(
         string="Cycle Time (Seconds)",
         compute="_compute_time_cycle_second",
         store=True,
