@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="action_res_config_settings_commercium" model="ir.actions.act_window">
+            <field name="name">Commercium Configuration</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">inline</field>
+            <field name="context">{'module': 'odoo_marketplace_and_e_commerce_connector'}</field>
+        </record>
+
+        <menuitem id="menu_commercium_connector_root"
+                  name="Commercium Connector"
+                  parent="base.menu_administration"
+                  sequence="100"/>
+
+        <menuitem id="menu_commercium_connector_settings"
+                  name="Configuration"
+                  parent="menu_commercium_connector_root"
+                  action="action_res_config_settings_commercium"
+                  sequence="10"/>
+
+    </data>
+</odoo>

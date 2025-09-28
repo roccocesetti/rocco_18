@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_res_config_settings_commercium" model="ir.ui.view">
+            <field name="name">res.config.settings.commercium</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <div class="app_settings_block" data-string="Odoo Marketplace and E-commerce Connector" string="Odoo Marketplace and E-commerce Connector" data-icon="/odoo_marketplace_and_e_commerce_connector/static/description/icon.png">
+                        <h2>Connect to Commercium App</h2>
+                        <div class="mt16 o_settings_container">
+                            <div class="row">
+                                <div class="col-12 col-lg-8">
+                                    <div class="card bg-white border-0 shadow-sm mb-4">
+                                        <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                            <h5 class="m-0" style="font-size: 1.15rem;">Webservice Credentials</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row mb-3 align-items-center">
+                                                <label class="col-sm-5 col-form-label fw-bold" style="font-weight:500; color:#222;" for="commercium_domain">Domain:</label>
+                                                <div class="col-sm-7">
+                                                    <field name="commercium_domain" readonly="1" class="form-control" style=" width: 100%; " />
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3 align-items-center">
+                                                <label class="col-sm-5 col-form-label fw-bold" style="font-weight:500; color:#222;" for="commercium_db">Database:</label>
+                                                <div class="col-sm-7">
+                                                    <field name="commercium_db" readonly="1" class="form-control" style=" width: 100%; " />
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3 align-items-center">
+                                                <label class="col-sm-5 col-form-label fw-bold" style="font-weight:500; color:#222;" for="commercium_username">Username:</label>
+                                                <div class="col-sm-7">
+                                                    <field name="commercium_username" readonly="1" class="form-control" style=" width: 100%; " />
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3 align-items-center">
+                                                <div class="col-sm-5" style="font-weight:500; color: #575757;">Steps to generate API Keys:</div>
+                                                <div class="col-sm-7">
+                                                    <div style="background:#fff3cd; border:1px solid #ffeeba; border-radius:6px; color:#856404; font-size:14px; line-height:1.6; padding:8px 12px;">
+                                                    Please generate an API Key from
+                                                    <b>Odoo Settings → My Profile → Account Security → New API Key</b>
+                                                    , copy it, and paste it into the corresponding API Key field in your
+                                                    <b>Commercium</b>
+                                                    account.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card bg-white border-0 shadow-sm mb-4">
+                                        <div class="card-body py-3 d-flex align-items-center">
+                                            <field name="platform_connected" invisible="1"/>
+                                            <div invisible="platform_connected" class="d-flex align-items-center">
+                                                <div class="rounded-circle" style="width: 10px; height: 10px; background: red; margin-right: 8px;"></div>
+                                                <span class="text-danger fw-bold">Not Connected</span>
+                                            </div>
+                                            <div invisible="not platform_connected" class="d-flex align-items-center">
+                                                <div class="rounded-circle" style="width: 10px; height: 10px; background: #28a745; margin-right: 8px;"></div>
+                                                <span class="text-success fw-bold">Connected</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card bg-white border-0 shadow-sm">
+                                        <div class="card-body">
+                                            <h5 class="card-title" style="font-size: 1.15rem;">Launch Commercium App</h5>
+                                            <p class="text-muted" style="font-size: 0.875rem;">
+                                                Already have an account? Log in to launch the app.<br/>
+                                                New here? Sign up to get started.
+                                            </p>
+                                            <div class="d-flex gap-3 mt-3">
+                                                <a href="https://commercium.constacloud.com/auth/login" target="_blank" class="btn btn-primary" style="font-weight: 500; min-width: 110px;">
+                                                    <i class="fa fa-sign-in me-2"></i>Log In
+                                                </a>
+                                                <a href="https://commercium.constacloud.com/auth/registration?source=ODOO" target="_blank" class="btn btn-outline-secondary" style="font-weight: 500; min-width: 110px;">
+                                                    <i class="fa fa-user-plus me-2"></i>Sign Up
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12 col-lg-4">
+                                    <div class="card bg-white border-0 shadow-sm">
+                                        <div class="card-header bg-white border-0 py-3">
+                                            <h5 class="m-0" style="font-size: 1.15rem;">How to connect this module step-by-step</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-2"><b>Step 1:</b> Copy the Domain, Database Name, and Username details shown in this module.</p>
+                                            <p class="mb-2"><b>Step 2:</b> In your Odoo account, go to Settings → My Profile → Account Security → New API Key, generate a new key, copy it, and keep it ready.</p>
+                                            <p class="mb-2"><b>Step 3:</b> Log in or register on your Commercium account, and paste all these details (Domain, Database Name, Username, and API Key) into the corresponding fields.</p>
+                                            <p class="mb-2"><b>Step 4:</b> Click Connect in Commercium to complete the integration.</p>
+                                            <hr/>
+                                            <small class="text-muted">
+                                                <ul>
+                                                    <li>Make sure your internet connection is active.</li>
+                                                    <li>Ensure the API credentials are correct and active.</li>
+                                                </ul>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
