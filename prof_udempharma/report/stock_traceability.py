@@ -5,6 +5,8 @@ from odoo import api, models, _
 from odoo.tools import format_datetime
 from markupsafe import Markup
 from odoo.tools.misc import format_datetime as fmt_dt
+import logging
+_logger = logging.getLogger(__name__)
 
 rec = 0
 def autoIncrement():
@@ -40,23 +42,65 @@ def _format_hms(seconds):
 class MrpStockReport(models.TransientModel):
     _inherit = 'stock.traceability.report'
 
-
-    def get_pdf_lines(self, line_data=[]):
-        #lines=super().get_pdf_lines(line_data)
-        lines = []
-        for line in line_data:
-            model = self.env[line['model_name']].browse(line['model_id'])
-            unfoldable = False
-            if line.get('unfoldable'):
-                unfoldable = True
-            final_vals = self._make_dict_move(line['level'], parent_id=line['id'], move_line=model, unfoldable=unfoldable)
-            lines.append(self._final_vals_to_lines(final_vals, line['level'])[0])
-        return lines
+    #def get_pdf_lines(self, line_data=[]):
+    #    # lines = []
+    #    # for line in line_data:
+    #    #     ...
+    #    # return lines
+    #    return super().with_context(print_mode=True).get_pdf_lines(line_data or [])
+    def get_pdf_lines(self, line_data=None):
+        line_data = line_data or []
+        return super().get_pdf_lines(line_data)
 
     def _compute_mrp_meta_from_lines(self, lines):
-        if not lines:
-            return {}
-        first = lines[0] or {}
+        """Prova prima a ricavare la mrp.production dal context attivo.
+           Se non la trova, fa fallback alle righe come prima."""
+        ctx = self.env.context
+        prod = None
+
+        # 1) Prendo la produzione direttamente dal contesto se il report è lanciato da mrp.production
+        if ctx.get('active_model') == 'mrp.production' and ctx.get('active_id'):
+            prod = self.env['mrp.production'].browse(int(ctx['active_id']))
+
+        # 2) Altri lanci: provo a risalire da move line / picking / lot
+        elif ctx.get('active_model') == 'stock.move.line' and ctx.get('active_id'):
+            ml = self.env['stock.move.line'].browse(int(ctx['active_id']))
+            prod = ml.move_id.production_id or ml.move_id.raw_material_production_id
+
+        elif ctx.get('active_model') == 'stock.picking' and ctx.get('active_id'):
+            pick = self.env['stock.picking'].browse(int(ctx['active_id']))
+            ml = pick.move_ids.move_line_ids[:1]
+            if ml:
+                prod = ml.move_id.production_id or ml.move_id.raw_material_production_id
+
+        elif ctx.get('active_model') == 'stock.lot' and ctx.get('active_id'):
+            lot = self.env['stock.lot'].browse(int(ctx['active_id']))
+            ml = self.env['stock.move.line'].search(
+                [('lot_id', '=', lot.id), ('state', '=', 'done')],
+                limit=1, order='date desc'
+            )
+            if ml:
+                prod = ml.move_id.production_id or ml.move_id.raw_material_production_id
+
+        # Se ho trovato la produzione, costruisco i meta direttamente da lì
+        if prod:
+            ds = prod.date_start
+            # su v18 spesso è 'date_finished'
+            df = getattr(prod, 'date_finished', False) or getattr(prod, 'date_planned_finished', False)
+            dur_s = (df - ds).total_seconds() if (ds and df) else None
+            return {
+                'mrp_product_name': prod.product_id.display_name,
+                'mrp_date_start': ds,
+                'mrp_date_start_fmt': ds and format_datetime(self.env, ds, tz=False, dt_format=False) or False,
+                'mrp_date_finished': df,
+                'mrp_duration_seconds': dur_s,
+                'mrp_duration_human': _format_hms(dur_s) if dur_s else "-",
+                'mrp_user_name': prod.user_id and prod.user_id.display_name or False,
+                'mrp_picking_type_name': prod.picking_type_id and prod.picking_type_id.display_name or False,
+            }
+
+        # Fallback: usa la prima riga come facevi prima (se le righe contengono già i meta)
+        first = (lines and lines[0]) or {}
         ds = first.get('mrp_date_start')
         df = first.get('mrp_date_finished')
         dur_s = first.get('mrp_duration_seconds')
@@ -66,46 +110,33 @@ class MrpStockReport(models.TransientModel):
             'mrp_date_start_fmt': ds and format_datetime(self.env, ds, tz=False, dt_format=False) or False,
             'mrp_date_finished': df,
             'mrp_duration_seconds': dur_s,
-            'mrp_duration_hms': first.get('mrp_duration_hms') or _format_hms(dur_s),
-            'mrp_user_name': first.get('mrp_user_name'),
-            'mrp_picking_type_name': first.get('mrp_picking_type_name'),
+            'mrp_duration_human': first.get('mrp_duration_hms') or _format_hms(dur_s),
+            'mrp_user_name': first.get('mrp_user') or first.get('mrp_user_name'),
+            'mrp_picking_type_name': first.get('mrp_picking_type') or first.get('mrp_picking_type_name'),
         }
-
 
     def get_pdf(self, line_data=None):
         line_data = [] if line_data is None else line_data
-        lines = self.with_context(print_mode=True).get_pdf_lines(line_data)
-        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        rcontext = {
-            'mode': 'print',
-            'base_url': base_url,
-            # 👇 aggiunta: iniettiamo la funzione nel contesto del template
-            'format_datetime': fmt_dt,
-        }
-
-        context = dict(self.env.context)
-        if context.get('active_id') and context.get('active_model'):
-            rcontext['reference'] = self.env[context.get('active_model')].browse(
-                int(context.get('active_id'))
-            ).display_name
-
+        lines = self.with_context(print_mode=True).get_pdf_lines(line_data)  # <-- questa riga cambia
+        _logger.info("TRACEABILITY LINES COUNT: %s", len(lines))
         meta_ctx = self._compute_mrp_meta_from_lines(lines)
+        _logger.debug("MRP META: %s", meta_ctx)
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        rcontext = {'mode': 'print', 'base_url': base_url}
+        ctx = self.env.context
+        if ctx.get('active_id') and ctx.get('active_model'):
+            rcontext['reference'] = self.env[ctx['active_model']].browse(int(ctx['active_id'])).display_name
 
         body = self.env['ir.ui.view'].with_context(meta_ctx)._render_template(
             "stock.report_stock_inventory_print",
             values=dict(rcontext, lines=lines, report=self, context=self),
         )
-
         header = self.env['ir.actions.report']._render_template("web.internal_layout", values=rcontext)
         header = self.env['ir.actions.report']._render_template(
-            "web.minimal_layout",
-            values=dict(rcontext, subst=True, body=Markup(header.decode()))
+            "web.minimal_layout", values=dict(rcontext, subst=True, body=Markup(header.decode()))
         )
-
         return self.env['ir.actions.report']._run_wkhtmltopdf(
-            [body],
-            header=header.decode(),
-            landscape=True,
+            [body], header=header.decode(), landscape=True,
             specific_paperformat_args={'data-report-margin-top': 30, 'data-report-header-spacing': 25}
         )
 

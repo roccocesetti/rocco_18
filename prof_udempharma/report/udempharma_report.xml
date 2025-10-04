@@ -243,13 +243,49 @@
       </div>
       <div class="col-6">
         <strong>Start prod.:</strong>
-        <t t-set="__ds" t-value="(env.context or {}).get('mrp_date_start')"/>
-        <t t-if="__ds">
-          <t t-esc="format_datetime(env, __ds, tz=False, dt_format=False)"/>
-        </t>
-        <t t-else="">-</t>
+            <t t-esc="(env.context or {}).get('mrp_date_start_fmt') or '-'"/>
+
       </div>
     </div>
+
+    <!-- COMPONENTI: uso mrp_production_id dal contesto, niente xpath nella vista MRP -->
+    <t t-set="prod" t-value="env['mrp.production'].browse(((env.context or {}).get('mrp_production_id')) or 0)"/>
+    <t t-if="prod">
+      <h4 class="mt8 mb4">Componenti</h4>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Prodotto</th>
+            <th class="text-end">Quantità</th>
+            <th>Lotti</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="prod.move_raw_ids" t-as="rm">
+            <td><span t-esc="rm.product_id.display_name"/></td>
+            <td class="text-end">
+              <t t-if="rm.quantity_done">
+                <span t-esc="rm.quantity_done"/> <span t-esc="rm.product_uom.name"/>
+              </t>
+              <t t-else="">
+                <span t-esc="rm.product_uom_qty"/> <span t-esc="rm.product_uom.name"/>
+              </t>
+            </td>
+            <td>
+              <t t-set="lots" t-value="rm.move_line_ids.filtered(lambda ml: ml.state == 'done' and ml.lot_id).mapped('lot_id')"/>
+              <t t-if="lots">
+                <ul class="mb0">
+                  <t t-foreach="set(lots)" t-as="lot">
+                    <li><span t-esc="lot.name"/></li>
+                  </t>
+                </ul>
+              </t>
+              <t t-else="">-</t>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </t>
   </xpath>
 
   <!-- BLOCCO POST-TABELLA: Durata, Responsabile, Tipo operazione -->
@@ -261,13 +297,8 @@
           <tr>
             <td>
               <strong>Durata:</strong>
-              <t t-if="(env.context or {}).get('mrp_duration_human')">
-                <t t-esc="(env.context or {}).get('mrp_duration_human')"/>
-              </t>
-              <t t-elif="(env.context or {}).get('mrp_duration')">
-                <t t-esc="(env.context or {}).get('mrp_duration')"/> s
-              </t>
-              <t t-else="">-</t>
+              <t t-esc="(env.context or {}).get('mrp_duration_human') or '-'"/>
+
             </td>
             <td>
               <strong>Responsabile:</strong>
@@ -282,56 +313,6 @@
       </table>
     </div>
   </xpath>
-
-      <xpath expr="//thead/tr/th[1]" position="after">
-        <th>Lotto</th>
-        <th>Scadenza</th>
-      </xpath>
-
-      <!-- BODY: dopo la 1ª <td> (Product) aggiungo due celle Lotto/Scadenza -->
-      <xpath expr="//tbody/tr[@t-foreach='o.move_raw_ids']/td[1]" position="after">
-        <!-- Lotto -->
-        <td>
-          <!-- prendo i lotti dalle move lines del componente -->
-          <t t-set="lots"
-             t-value="raw_line.move_line_ids.mapped('lot_id')"/>
-          <t t-if="lots">
-            <ul class="mb0">
-              <!-- evito duplicati -->
-              <t t-foreach="set(lots)" t-as="lot">
-                <t t-if="lot">
-                  <li><span t-esc="lot.name"/></li>
-                </t>
-              </t>
-            </ul>
-          </t>
-          <t t-else="">-</t>
-        </td>
-
-        <!-- Scadenza -->
-        <td>
-          <t t-set="lots"
-             t-value="raw_line.move_line_ids.mapped('lot_id')"/>
-          <t t-if="lots">
-            <ul class="mb0">
-              <t t-foreach="set(lots)" t-as="lot">
-                <t t-if="lot">
-                  <t t-set="exp"
-                     t-value="lot.expiration_date or lot.use_date"/>
-                  <li>
-                    <t t-if="exp">
-                      <t t-esc="exp.strftime('%d/%m/%Y')"/>
-                    </t>
-                    <t t-else="">-</t>
-                  </li>
-                </t>
-              </t>
-            </ul>
-          </t>
-          <t t-else="">-</t>
-        </td>
-      </xpath>
-
 
 </template>
 
