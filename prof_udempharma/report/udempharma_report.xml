@@ -283,15 +283,6 @@
     </div>
   </xpath>
 
-</template>
-
-
-
-
-           <template id="report_mrp_production_components_inherit_lot_exp"
-              inherit_id="mrp.report_mrp_production_components">
-
-      <!-- HEADER: dopo "Product" aggiungo "Lot/Serial" e "Expiration" -->
       <xpath expr="//thead/tr/th[1]" position="after">
         <th>Lotto</th>
         <th>Scadenza</th>
@@ -341,7 +332,12 @@
         </td>
       </xpath>
 
-    </template>
+
+</template>
+
+
+
+
 
        <template id="report_mrporder_inherit_lot_exp" inherit_id="mrp.report_mrporder">
 
