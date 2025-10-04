@@ -224,6 +224,69 @@
          </template>
 
 
+<template id="report_traceability_custom_blocks"
+          inherit_id="stock.report_stock_body_print">
+
+  <!-- STILI + BLOCCO PRE-TABELLA: Prodotto + Start prod. -->
+  <xpath expr="//table[.//tr[contains(concat(' ', normalize-space(@class), ' '), ' o_report_header ')]]"
+         position="before">
+    <style type="text/css">
+      .o_trace_ctx_top strong, .o_trace_ctx_bottom strong { white-space: nowrap; }
+      .o_trace_ctx_top { border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 4px; }
+      .o_trace_ctx_bottom { border-top: 1px solid #ddd; padding-top: 4px; margin-top: 8px; }
+    </style>
+
+    <div class="row o_trace_ctx_top">
+      <div class="col-6">
+        <strong>Prodotto:</strong>
+        <t t-esc="(env.context or {}).get('mrp_product_name') or '-'"/>
+      </div>
+      <div class="col-6">
+        <strong>Start prod.:</strong>
+        <t t-set="__ds" t-value="(env.context or {}).get('mrp_date_start')"/>
+        <t t-if="__ds">
+          <t t-esc="format_datetime(env, __ds, tz=False, dt_format=False)"/>
+        </t>
+        <t t-else="">-</t>
+      </div>
+    </div>
+  </xpath>
+
+  <!-- BLOCCO POST-TABELLA: Durata, Responsabile, Tipo operazione -->
+  <xpath expr="//table[.//tr[contains(concat(' ', normalize-space(@class), ' '), ' o_report_header ')]]"
+         position="after">
+    <div class="o_trace_ctx_bottom">
+      <table class="table table-sm table-borderless">
+        <tbody>
+          <tr>
+            <td>
+              <strong>Durata:</strong>
+              <t t-if="(env.context or {}).get('mrp_duration_human')">
+                <t t-esc="(env.context or {}).get('mrp_duration_human')"/>
+              </t>
+              <t t-elif="(env.context or {}).get('mrp_duration')">
+                <t t-esc="(env.context or {}).get('mrp_duration')"/> s
+              </t>
+              <t t-else="">-</t>
+            </td>
+            <td>
+              <strong>Responsabile:</strong>
+              <t t-esc="(env.context or {}).get('mrp_user_name') or '-'"/>
+            </td>
+            <td>
+              <strong>Tipo operazione:</strong>
+              <t t-esc="(env.context or {}).get('mrp_picking_type_name') or '-'"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </xpath>
+
+</template>
+
+
+
 
            <template id="report_mrp_production_components_inherit_lot_exp"
               inherit_id="mrp.report_mrp_production_components">
@@ -280,7 +343,7 @@
 
     </template>
 
-        <template id="report_mrporder_inherit_lot_exp" inherit_id="mrp.report_mrporder">
+       <template id="report_mrporder_inherit_lot_exp" inherit_id="mrp.report_mrporder">
 
       <!-- Seleziona la riga info prodotto (quella che contiene <span t-field="o.product_id">) -->
       <xpath expr="//div[contains(@class,'row') and contains(@class,'mt32') and contains(@class,'mb32')]

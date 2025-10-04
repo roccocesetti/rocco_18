@@ -4,7 +4,7 @@
 from odoo import api, models, _
 from odoo.tools import format_datetime
 from markupsafe import Markup
-
+from odoo.tools.misc import format_datetime as fmt_dt
 
 rec = 0
 def autoIncrement():
@@ -16,10 +16,98 @@ def autoIncrement():
     else:
         rec += pInterval
     return rec
+def _format_duration_hms(seconds):
+    if not seconds:
+        return "-"
+    seconds = int(seconds)
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
+def _format_hms(seconds):
+    """Ritorna 'HH:MM:SS' da secondi (int/float). Se falsy => '-'."""
+    if not seconds:
+        return "-"
+    try:
+        seconds = int(seconds)
+    except Exception:
+        return "-"
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
 
 class MrpStockReport(models.TransientModel):
     _inherit = 'stock.traceability.report'
 
+
+    def get_pdf_lines(self, line_data=[]):
+        #lines=super().get_pdf_lines(line_data)
+        lines = []
+        for line in line_data:
+            model = self.env[line['model_name']].browse(line['model_id'])
+            unfoldable = False
+            if line.get('unfoldable'):
+                unfoldable = True
+            final_vals = self._make_dict_move(line['level'], parent_id=line['id'], move_line=model, unfoldable=unfoldable)
+            lines.append(self._final_vals_to_lines(final_vals, line['level'])[0])
+        return lines
+
+    def _compute_mrp_meta_from_lines(self, lines):
+        if not lines:
+            return {}
+        first = lines[0] or {}
+        ds = first.get('mrp_date_start')
+        df = first.get('mrp_date_finished')
+        dur_s = first.get('mrp_duration_seconds')
+        return {
+            'mrp_product_name': first.get('mrp_product_name'),
+            'mrp_date_start': ds,
+            'mrp_date_start_fmt': ds and format_datetime(self.env, ds, tz=False, dt_format=False) or False,
+            'mrp_date_finished': df,
+            'mrp_duration_seconds': dur_s,
+            'mrp_duration_hms': first.get('mrp_duration_hms') or _format_hms(dur_s),
+            'mrp_user_name': first.get('mrp_user_name'),
+            'mrp_picking_type_name': first.get('mrp_picking_type_name'),
+        }
+
+
+    def get_pdf(self, line_data=None):
+        line_data = [] if line_data is None else line_data
+        lines = self.with_context(print_mode=True).get_pdf_lines(line_data)
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        rcontext = {
+            'mode': 'print',
+            'base_url': base_url,
+            # 👇 aggiunta: iniettiamo la funzione nel contesto del template
+            'format_datetime': fmt_dt,
+        }
+
+        context = dict(self.env.context)
+        if context.get('active_id') and context.get('active_model'):
+            rcontext['reference'] = self.env[context.get('active_model')].browse(
+                int(context.get('active_id'))
+            ).display_name
+
+        meta_ctx = self._compute_mrp_meta_from_lines(lines)
+
+        body = self.env['ir.ui.view'].with_context(meta_ctx)._render_template(
+            "stock.report_stock_inventory_print",
+            values=dict(rcontext, lines=lines, report=self, context=self),
+        )
+
+        header = self.env['ir.actions.report']._render_template("web.internal_layout", values=rcontext)
+        header = self.env['ir.actions.report']._render_template(
+            "web.minimal_layout",
+            values=dict(rcontext, subst=True, body=Markup(header.decode()))
+        )
+
+        return self.env['ir.actions.report']._run_wkhtmltopdf(
+            [body],
+            header=header.decode(),
+            landscape=True,
+            specific_paperformat_args={'data-report-margin-top': 30, 'data-report-header-spacing': 25}
+        )
 
     @api.model
     def get_lines(self, line_id=False, **kw):
@@ -82,6 +170,34 @@ class MrpStockReport(models.TransientModel):
                     False
             )
 
+
+            # trova la produzione associata alla move_line
+            ml = None
+            if v.get('model') == 'stock.move.line' and v.get('model_id'):
+                ml = self.env['stock.move.line'].browse(v['model_id'])
+            production = False
+            if ml and ml.move_id:
+                # per materie prime
+                production = ml.move_id.raw_material_production_id or production
+                # per finiti/semi-lavorati
+                production = ml.move_id.production_id or production
+
+            # popola i campi produzione (se trovata)
+            date_start = date_finished = False
+            duration_seconds = False
+            user_name = picking_type_name = False
+            if production:
+                date_start = production.date_start
+                mrp_product_name=production.product_id.display_name
+                date_finished = getattr(production, 'date_finished', False)  # in 18 è "date_finished"
+                if date_start and date_finished:
+                    duration_seconds = (date_finished - date_start).total_seconds()
+                user_name = production.user_id and production.user_id.display_name or False
+                picking_type_name = production.picking_type_id and production.picking_type_id.display_name or False
+
+
+
+
             # Rimuovi ubicazioni di origine/destinazione (sia id che nomi/display)
             for key in (
                     'location_id', 'location_dest_id',
@@ -94,12 +210,30 @@ class MrpStockReport(models.TransientModel):
         # Ordina per data decrescente e crea le lines finali
         final_vals = sorted(move_line_vals, key=lambda v: v.get('date'), reverse=True)
         lines = self._final_vals_to_lines(final_vals, level)
+
         return lines
 
     def _make_dict_move(self, level, parent_id, move_line, unfoldable=False):
-        data=super()._make_dict_move(level, parent_id, move_line, unfoldable)
         res_model, res_id, ref = self._get_reference(move_line)
         dummy, is_used = self._get_linked_move_lines(move_line)
+
+        production = move_line.move_id.raw_material_production_id or move_line.move_id.production_id
+        mrp_product_name = False
+        date_start = date_finished = False
+        duration_seconds = False
+        user_name = picking_type_name = False
+        if production:
+            date_start = production.date_start
+            date_finished = getattr(production, 'date_finished', False)
+            mrp_product_name = production.product_id.display_name
+            if date_start and date_finished:
+                duration_seconds = (date_finished - date_start).total_seconds()
+            user_name = production.user_id and production.user_id.display_name or False
+            picking_type_name = production.picking_type_id and production.picking_type_id.display_name or False
+
+        lot = move_line.lot_id
+        expiration_date = (lot and (lot.expiration_date or lot.use_date or getattr(lot, 'life_date', False))) or False
+
         data = [{
             'level': level,
             'unfoldable': unfoldable,
@@ -110,23 +244,33 @@ class MrpStockReport(models.TransientModel):
             'model_id': move_line.id,
             'model': 'stock.move.line',
             'product_id': move_line.product_id.display_name,
-            'product_qty_uom': "%s %s" % (self._quantity_to_str(move_line.product_uom_id, move_line.product_id.uom_id, move_line.quantity), move_line.product_id.uom_id.name),
+            'product_qty_uom': "%s %s" % (
+            self._quantity_to_str(move_line.product_uom_id, move_line.product_id.uom_id, move_line.quantity),
+            move_line.product_id.uom_id.name),
             'lot_name': move_line.lot_id.name,
             'lot_id': move_line.lot_id.id,
-            'expiration_date': move_line.expiration_date,
-            #'location_source': move_line.location_id.name,
-            #'location_destination': move_line.location_dest_id.name,
             'reference_id': ref,
             'res_id': res_id,
-            'res_model': res_model}]
+            'res_model': res_model,
+            'expiration_date': expiration_date,
+
+            # --- MRP meta (chiavi coerenti) ---
+            'mrp_product_name': mrp_product_name,
+            'mrp_date_start': date_start,
+            'mrp_date_finished': date_finished,
+            'mrp_duration_seconds': duration_seconds,
+            'mrp_duration_hms': _format_hms(duration_seconds) if duration_seconds else "-",
+            'mrp_user_name': user_name,
+            'mrp_picking_type_name': picking_type_name,
+        }]
         return data
+
 
     @api.model
     def _final_vals_to_lines(self, final_vals, level):
-        lines=super()._final_vals_to_lines(final_vals, level)
         lines = []
         for data in final_vals:
-            lines.append({
+            line = {
                 'id': autoIncrement(),
                 'model': data['model'],
                 'model_id': data['model_id'],
@@ -138,17 +282,27 @@ class MrpStockReport(models.TransientModel):
                 'reference': data.get('reference_id', False),
                 'res_id': data.get('res_id', False),
                 'res_model': data.get('res_model', False),
-                'columns': [data.get('reference_id', False),
-                            data.get('product_id', False),
-                            format_datetime(self.env, data.get('date', False), tz=False, dt_format=False),
-                            data.get('lot_name', False),
-                            format_datetime(self.env, data.get('expiration_date', False), tz=False, dt_format=False),
-                            #data.get('location_source', False),
-                            #data.get('location_destination', False),
-                            data.get('product_qty_uom', 0)],
+                'columns': [
+                    data.get('reference_id', False),
+                    data.get('product_id', False),
+                    format_datetime(self.env, data.get('date', False), tz=False, dt_format=False),
+                    data.get('lot_name', False),
+                    format_datetime(self.env, data.get('expiration_date', False), tz=False, dt_format=False),
+                    data.get('product_qty_uom', 0),
+                    # (niente MRP qui: le mostri in header/footer)
+                ],
                 'level': level,
                 'unfoldable': data['unfoldable'],
-            })
+            }
+            # --- PROPAGA meta MRP perché _compute_mrp_meta_from_lines li legga ---
+            for k in (
+                    'mrp_product_name', 'mrp_date_start', 'mrp_date_finished',
+                    'mrp_duration_seconds', 'mrp_duration_hms',
+                    'mrp_user_name', 'mrp_picking_type_name'
+            ):
+                if k in data:
+                    line[k] = data[k]
+            lines.append(line)
         return lines
 
     def _get_main_lines(self):
