@@ -223,9 +223,6 @@
 <template id="report_traceability_custom_blocks"
           inherit_id="stock.report_stock_body_print">
 
-  <xpath expr="//div[contains(@class,'header')]//*[contains(@class,'date')]" position="replace">
-      <span class="date"></span>
-    </xpath>
   <!-- STILI + BLOCCO PRE-TABELLA: Prodotto + Start prod. -->
   <xpath expr="//table[.//tr[contains(concat(' ', normalize-space(@class), ' '), ' o_report_header ')]]"
          position="before">
