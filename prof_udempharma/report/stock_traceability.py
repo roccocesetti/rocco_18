@@ -314,9 +314,9 @@ class MrpStockReport(models.TransientModel):
                 'res_id': data.get('res_id', False),
                 'res_model': data.get('res_model', False),
                 'columns': [
-                    data.get('reference_id', False),
+                    #data.get('reference_id', False),
                     data.get('product_id', False),
-                    format_datetime(self.env, data.get('date', False), tz=False, dt_format=False),
+                    #format_datetime(self.env, data.get('date', False), tz=False, dt_format=False),
                     data.get('lot_name', False),
                     format_datetime(self.env, data.get('expiration_date', False), tz=False, dt_format=False),
                     data.get('product_qty_uom', 0),
