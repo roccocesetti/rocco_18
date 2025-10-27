@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="delivery_carrier_form_inherit" model="ir.ui.view">
+            <field name="name">gls_italy.delivery_carrier.form</field>
+            <field name="model">delivery.carrier</field>
+            <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='destination']" position='before'>
+                <page string="GLS Italy Configuration" name="gls_italy_configuration"
+                      invisible = "delivery_type != 'gls_italy'">
+                    <group>
+                        <group>
+                            <field name="gls_italy_modalitaIncasso"
+                                   required="delivery_type == 'gls_italy'" />
+                            <field name="gls_italy_port_type"
+                                   required="delivery_type == 'gls_italy'" />
+                            <field name="gls_italy_shipping_type"
+                                   required="delivery_type == 'gls_italy'" />
+                            <field name="gls_packaging_id"
+                                   required="delivery_type == 'gls_italy'" />
+                            <field name="gls_italy_cod"
+                                   required="delivery_type == 'gls_italy'" />
+                            <field name="gls_flex_delivery_service"
+                                   required="delivery_type == 'gls_italy'" />
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
