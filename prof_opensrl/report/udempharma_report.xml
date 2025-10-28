@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--
+    <template id="report_ddt_view">
+        <t t-call="web.external_layout">
+            <t t-set="o" t-value="o.with_context(lang=lang)"/>
+            <t t-if="o.move_ids_without_package and o.move_ids_without_package[0].partner_id and o.location_dest_id.usage == 'customer' and o.location_id.usage == 'supplier'">
+              <t t-set="delivery_from" t-value="o.partner_id"/>
+              <t t-set="delivery_to" t-value="o.move_ids_without_package[0].partner_id"/>
+            </t>
+            <t t-elif="o.picking_type_id.warehouse_id.partner_id">
+              <t t-set="delivery_from" t-value="o.picking_type_id.warehouse_id.partner_id"/>
+              <t t-set="delivery_to" t-value="o.partner_id"/>
+            </t>
+            <t t-else="">
+              <t t-set="delivery_from" t-value="o.company_id.partner_id"/>
+              <t t-set="delivery_to" t-value="o.partner_id"/>
+            </t>
+            <div class="page">
+                <div class="row">
+                    <div class="col-6">
+                       <span><strong>Warehouse Address:</strong></span>
+                        <div t-esc="delivery_from"
+                        t-options='{"widget": "contact", "fields": ["address", "name", "phone"], "no_marker": True, "phone_icons": True}'/>
+                        <p t-if="delivery_from.vat">VAT: <span t-field="delivery_from.vat"/></p>
+                    </div>
+                    <div class="col-5 offset-1">
+                        <div>
+                            <span><strong>Customer Address:</strong></span>
+                            <div t-esc="delivery_to"
+                                   t-options='{"widget": "contact", "fields": ["address", "name", "phone", "vat"], "no_marker": True, "phone_icons": True}'/>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt16"/>
+                <div class="mt64"/>
+                <div>
+                    <h1>Documento di Trasporto <span t-esc="o.l10n_it_ddt_number"/></h1>
+                </div>
+                <div class="clearfix"/>
+                <div class="mb32"/>
+                <div class="row">
+                    <div class="col-6">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td>Transportation Reason</td>
+                                    <td><span t-field="o.l10n_it_transport_reason"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Transportation Method</td>
+                                    <td><span t-field="o.l10n_it_transport_method"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Carrier Condition</td>
+                                    <td><span t-field="o.sale_id.incoterm.name"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Carrier</td>
+                                    <td><span t-field="o.carrier_id"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div t-if="o.l10n_it_transport_method_details">
+                            <b>Transportation Method Details: </b>
+                            <span t-field="o.l10n_it_transport_method_details"/>
+                        </div>
+                    </div>
+                    <div class="col-5 offset-1">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <td>Order</td>
+                                    <td><span t-field="o.origin"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Picking Number</td>
+                                    <td><span t-field="o.name"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Shipping Date</td>
+                                    <td><span t-field="o.date_done"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Gross Weight (kg)</td>
+                                    <td><span t-field="o.shipping_weight"/></td>
+                                </tr>
+                                <tr>
+                                    <td>Parcels</td>
+                                    <td><span t-field="o.l10n_it_parcels"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt64"/>
+                <div t-if="o.note"><b>Note:</b> <span t-field="o.note"/></div>
+
+                <div class="mt64"/>
+                <div class="mt64"/>
+
+                <table class="table table-sm" name="document_details">
+                    <thead>
+                        <tr>
+                            <th><strong>Product</strong></th>
+                            <th><strong>Quantity</strong></th>
+                            <th><strong>Total Value</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="total_value" t-value="0"/>
+                        <t t-foreach="o.move_ids" t-as="move">
+                            <t t-if="move.quantity">
+                                <tr>
+                                    <td>
+                                        <span t-field="move.product_id"/>
+                                    </td>
+                                    <td>
+                                        <span t-field="move.quantity"/>
+                                        <span t-field="move.product_uom" groups="uom.group_uom"/>
+                                    </td>
+                                    <td>
+                                        <t t-if="move.sale_line_id">
+                                            <t t-set="lst_price" t-value="move.sale_line_id.price_unit * move.quantity"/>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-set="lst_price" t-value="move.product_id.lst_price * move.product_uom._compute_quantity(move.quantity, move.product_id.uom_id)"/>
+                                        </t>
+                                        <span t-esc="lst_price"  t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                        <t t-set="total_value" t-value="total_value + lst_price"/>
+                                    </td>
+                                </tr>
+                            </t>
+                        </t>
+                        <tr>
+                            <td>
+                            </td>
+                            <td style="text-align:right">
+                                <b>Total:</b>
+                            </td>
+                            <td>
+                                <span t-esc="total_value"  t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="mt64"/>
+                <div class="mt64"/>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th><span class="fa fa-pencil mt4"/><div class="ml4 d-inline-block"/><strong>Company Signature</strong></th>
+                            <th><span class="fa fa-pencil mt4"/><div class="ml4 d-inline-block"/><strong>Carrier Signature</strong></th>
+                            <th><span class="fa fa-pencil mt4"/><div class="ml4 d-inline-block"/><strong>Customer Signature</strong></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="col">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="col">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="col">
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_ddt">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="lang" t-value="o._get_report_lang()"/>
+                <t t-call="l10n_it_stock_ddt.report_ddt_view" t-lang="lang"/>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_ddt" model="ir.actions.report">
+        <field name="name">DDT report</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_it_stock_ddt.report_ddt</field>
+        <field name="report_file">report_ddt</field>
+        <field name="print_report_name">'DDT - %s - %s' % (object.partner_id.name or '', object.l10n_it_ddt_number)</field>
+    </record>
+-->
+
+<odoo>
+     <data>
+        <template id="extend_report_picking_expiration_date" inherit_id="stock.report_picking">
+            <!-- Trova la colonna dove c'è il lotto barcode -->
+            <xpath expr="//td[contains(@class, 'text-center') and contains(@class, 'h6')]" position="inside">
+                <t t-if="ml.lot_id.expiration_date">
+                    <br/>
+                    <strong>Scadenza:</strong>
+                    <t t-esc="ml.lot_id.expiration_date.strftime('%d/%m/%Y')"/>
+                </t>
+            </xpath>
+        </template>
+
+         <template id="report_traceability_inherit_header" inherit_id="stock.report_stock_body_print">
+              <xpath expr="//thead/tr[@class='o_report_header']" position="replace">
+    <tr class="o_report_header">
+      <th class="o_report_line_header">Product</th>
+      <th class="o_report_line_header">Lot/Serial #</th>
+      <th class="o_report_line_header">Expiration</th>
+      <th class="o_report_line_header">Quantity</th>
+    </tr>
+            </xpath>
+         </template>
+
+
+<template id="report_traceability_custom_blocks"
+          inherit_id="stock.report_stock_body_print">
+
+  <!-- STILI + BLOCCO PRE-TABELLA: Prodotto + Start prod. -->
+  <xpath expr="//table[.//tr[contains(concat(' ', normalize-space(@class), ' '), ' o_report_header ')]]"
+         position="before">
+    <style type="text/css">
+      .o_trace_ctx_top strong, .o_trace_ctx_bottom strong { white-space: nowrap; }
+      .o_trace_ctx_top { border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 4px; }
+      .o_trace_ctx_bottom { border-top: 1px solid #ddd; padding-top: 4px; margin-top: 8px; }
+    </style>
+
+    <div class="row o_trace_ctx_top">
+      <div class="col-6">
+        <strong>Prodotto:</strong>
+        <t t-esc="(env.context or {}).get('mrp_product_name') or '-'"/>
+      </div>
+      <div class="col-6">
+        <strong>Start prod.:</strong>
+            <t t-esc="(env.context or {}).get('mrp_date_start_fmt') or '-'"/>
+
+      </div>
+    </div>
+
+    <!-- COMPONENTI: uso mrp_production_id dal contesto, niente xpath nella vista MRP -->
+    <t t-set="prod" t-value="env['mrp.production'].browse(((env.context or {}).get('mrp_production_id')) or 0)"/>
+    <t t-if="prod">
+      <h4 class="mt8 mb4">Componenti</h4>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Prodotto</th>
+            <th class="text-end">Quantità</th>
+            <th>Lotti</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr t-foreach="prod.move_raw_ids" t-as="rm">
+            <td><span t-esc="rm.product_id.display_name"/></td>
+            <td class="text-end">
+              <t t-if="rm.quantity_done">
+                <span t-esc="rm.quantity_done"/> <span t-esc="rm.product_uom.name"/>
+              </t>
+              <t t-else="">
+                <span t-esc="rm.product_uom_qty"/> <span t-esc="rm.product_uom.name"/>
+              </t>
+            </td>
+            <td>
+              <t t-set="lots" t-value="rm.move_line_ids.filtered(lambda ml: ml.state == 'done' and ml.lot_id).mapped('lot_id')"/>
+              <t t-if="lots">
+                <ul class="mb0">
+                  <t t-foreach="set(lots)" t-as="lot">
+                    <li><span t-esc="lot.name"/></li>
+                  </t>
+                </ul>
+              </t>
+              <t t-else="">-</t>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </t>
+  </xpath>
+
+  <!-- BLOCCO POST-TABELLA: Durata, Responsabile, Tipo operazione -->
+  <xpath expr="//table[.//tr[contains(concat(' ', normalize-space(@class), ' '), ' o_report_header ')]]"
+         position="after">
+    <div class="o_trace_ctx_bottom">
+      <table class="table table-sm table-borderless">
+        <tbody>
+          <tr>
+            <td>
+              <strong>Durata:</strong>
+              <t t-esc="(env.context or {}).get('mrp_duration_human') or '-'"/>
+
+            </td>
+            <td>
+              <strong>Responsabile:</strong>
+              <t t-esc="(env.context or {}).get('mrp_user_name') or '-'"/>
+            </td>
+            <td>
+              <strong>Tipo operazione:</strong>
+              <t t-esc="(env.context or {}).get('mrp_picking_type_name') or '-'"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </xpath>
+
+</template>
+
+
+
+
+
+       <template id="report_mrporder_inherit_lot_exp" inherit_id="mrp.report_mrporder">
+
+      <!-- Seleziona la riga info prodotto (quella che contiene <span t-field="o.product_id">) -->
+      <xpath expr="//div[contains(@class,'row') and contains(@class,'mt32') and contains(@class,'mb32')]
+                   [.//span[@t-field='o.product_id']][1]"
+             position="after">
+
+        <div class="row mt8">
+          <!-- Caso 1: lotto unico impostato sulla produzione -->
+          <t t-if="o.lot_producing_id">
+            <div class="col-3">
+              <strong>Lotto:</strong><br/>
+              <span t-field="o.lot_producing_id.name"/>
+            </div>
+            <div class="col-3">
+              <strong>Scadenza:</strong><br/>
+              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date"/>
+              <t t-if="exp"><span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+              <t t-else="">-</t>
+            </div>
+          </t>
+
+          <!-- Caso 2: nessun lotto fissato → elenco i lotti prodotti (state == 'done') -->
+          <t t-else="">
+            <div class="col-12">
+              <strong>Lotti prodotti:</strong>
+              <ul class="mb0">
+                <t t-set="lots_done"
+                   t-value="o.move_finished_ids.mapped('move_line_ids').filtered(lambda ml: ml.state == 'done').mapped('lot_id')"/>
+                <t t-foreach="set(lots_done)" t-as="lot">
+                  <t t-if="lot">
+                    <li>
+                      <span t-esc="lot.name"/>
+                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date"/>
+                      <t t-if="exp"> — <span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+                    </li>
+                  </t>
+                </t>
+              </ul>
+            </div>
+          </t>
+        </div>
+
+      </xpath>
+        </template>
+            <template id="report_mrporder_inherit_lot_exp" inherit_id="mrp.report_mrporder">
+
+      <!-- Seleziona la riga info prodotto (quella che contiene <span t-field="o.product_id">) -->
+      <xpath expr="//div[contains(@class,'row') and contains(@class,'mt32') and contains(@class,'mb32')]
+                   [.//span[@t-field='o.product_id']][1]"
+             position="after">
+
+        <div class="row mt8">
+          <!-- Caso 1: lotto unico impostato sulla produzione -->
+          <t t-if="o.lot_producing_id">
+            <div class="col-3">
+              <strong>Lotto:</strong><br/>
+              <span t-field="o.lot_producing_id.name"/>
+            </div>
+            <div class="col-3">
+              <strong>Scadenza:</strong><br/>
+              <t t-set="exp" t-value="o.lot_producing_id.expiration_date or o.lot_producing_id.use_date"/>
+              <t t-if="exp"><span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+              <t t-else="">-</t>
+            </div>
+          </t>
+
+          <!-- Caso 2: nessun lotto fissato → elenco i lotti prodotti (state == 'done') -->
+          <t t-else="">
+            <div class="col-12">
+              <strong>Lots produced:</strong>
+              <ul class="mb0">
+                <t t-set="lots_done"
+                   t-value="o.move_finished_ids.mapped('move_line_ids').filtered(lambda ml: ml.state == 'done').mapped('lot_id')"/>
+                <t t-foreach="set(lots_done)" t-as="lot">
+                  <t t-if="lot">
+                    <li>
+                      <span t-esc="lot.name"/>
+                      <t t-set="exp" t-value="lot.expiration_date or lot.use_date"/>
+                      <t t-if="exp"> — <span t-esc="exp.strftime('%d/%m/%Y')"/></t>
+                    </li>
+                  </t>
+                </t>
+              </ul>
+            </div>
+          </t>
+        </div>
+
+      </xpath>
+    </template>
+
+     </data>
+
+
+
+</odoo>
+
+
+
+
+
+
+</odoo>

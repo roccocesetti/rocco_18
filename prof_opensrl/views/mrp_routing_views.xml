@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- FORM: aggiungo il campo dopo time_cycle -->
+        <record id="mrp_routing_wc_form_inherit_time_cycle_second" model="ir.ui.view">
+            <field name="name">mrp.routing.workcenter.form.time.cycle.second</field>
+            <field name="model">mrp.routing.workcenter</field>
+            <!-- Sostituisci l'XMLID se diverso nella tua istanza -->
+            <field name="inherit_id" ref="mrp.mrp_routing_workcenter_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='time_cycle']" position="after">
+                    <field name="time_cycle_second"/>
+                </xpath>
+            </field>
+        </record>
+
+<record id="mrp_routing_wc_tree_inherit_time_cycle_second" model="ir.ui.view">
+  <field name="name">mrp.routing.workcenter.tree.time.cycle.second</field>
+  <field name="model">mrp.routing.workcenter</field>
+  <field name="inherit_id" ref="mrp.mrp_routing_workcenter_tree_view"/>
+  <field name="arch" type="xml">
+    <xpath expr="//list/field[@name='time_cycle']" position="after">
+      <field name="time_cycle_second" widget="float_time" string="Duration (s)"/>
+    </xpath>
+  </field>
+</record>
+
+        <record id="mrp_routing_workcenter_bom_tree_second_view" model="ir.ui.view">
+            <field name="name">mrp.routing.workcenter.tree.time.cycle.bom.second</field>
+            <field name="model">mrp.routing.workcenter</field>
+            <!-- Sostituisci l'XMLID se diverso -->
+            <field name="inherit_id" ref="mrp.mrp_routing_workcenter_bom_tree_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//list/field[@name='time_cycle']" position="after">
+                    <field name="time_cycle_second" widget="float_time"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
