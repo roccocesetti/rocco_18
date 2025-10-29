@@ -9,7 +9,7 @@
     'description': """
 Personalizzazione crm 
     """,
-    'depends': ['sales_team','sales','crm', ],
+    'depends': ['sales_team','crm', ],
     'data': [
         #'report/udempharma_report.xml',
         #'views/stock_move_line_views.xml',
