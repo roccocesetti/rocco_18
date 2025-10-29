@@ -3,6 +3,8 @@
 
 from odoo import models, api, fields, _
 from odoo.tools.float_utils import float_compare
+import logging
+_logger = logging.getLogger(__name__)
 
 class CrmLead(models.Model):
     _inherit = "crm.lead"
@@ -35,3 +37,68 @@ class CrmLeadCron(models.Model):
         if leads:
             leads.write({'user_id': False})
         return True
+
+class CrmLeadCronPartner(models.Model):
+    _inherit = "crm.lead"
+
+    @api.model
+    def cron_update_lead_city_from_partner(self, batch_size=1000, dry_run=False):
+        """
+        Aggiorna crm.lead.city prendendo la città dal partner collegato.
+        Logica:
+          - Usa commercial_partner_id per coerenza (azienda) e fallback al partner stesso
+          - Aggiorna solo se la città del partner esiste e differisce da quella della lead
+        Parametri:
+          - batch_size: dimensione del lotto per non saturare memoria/lock
+          - dry_run: se True non scrive, ma logga cosa farebbe
+        Ritorna:
+          - dict con contatori utili nel log/monitoraggio
+        """
+        env = self.env
+        Lead = env["crm.lead"].sudo()  # tipicamente il cron gira come admin, ma sudo per sicurezza
+
+        total_seen = 0
+        total_updated = 0
+        total_skipped = 0
+
+        last_id = 0
+        # batching robusto: paginiamo per id per evitare salti da offset dopo write/commit
+        while True:
+            leads = Lead.search(
+                [("id", ">", last_id), ("partner_id", "!=", False)],
+                order="id",
+                limit=batch_size,
+            )
+            if not leads:
+                break
+
+            for lead in leads:
+                total_seen += 1
+                partner = lead.partner_id.commercial_partner_id or lead.partner_id
+                city_src = (partner.city or "").strip()
+                city_dst = (lead.city or "").strip()
+
+                # aggiorna solo se la sorgente esiste e differisce
+                if city_src and city_src != city_dst:
+                    if not dry_run:
+                        # disabilito tracking per non generare chatter rumoroso
+                        lead.with_context(tracking_disable=True).write({"city": city_src})
+                    total_updated += 1
+                else:
+                    total_skipped += 1
+
+            last_id = leads[-1].id
+            # commit in cron per rilasciare lock su lotti molto grandi
+            if not dry_run:
+                env.cr.commit()
+
+        _logger.info(
+            "CRM City Sync: seen=%s, updated=%s, skipped=%s, dry_run=%s",
+            total_seen, total_updated, total_skipped, dry_run
+        )
+        return {
+            "seen": total_seen,
+            "updated": total_updated,
+            "skipped": total_skipped,
+            "dry_run": dry_run,
+        }

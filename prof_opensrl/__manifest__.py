@@ -15,7 +15,7 @@ Personalizzazione crm
         #'views/stock_move_line_views.xml',
         #'views/mrp_routing_views.xml',
 
-        #'views/account_invoice_views.xml',
+        'views/crm_lead_views.xml',
         'data/cron.xml',
     ],
     'auto_install': True,    
