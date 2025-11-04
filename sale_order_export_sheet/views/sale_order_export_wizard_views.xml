@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_sale_order_export_wizard_form" model="ir.ui.view">
+        <field name="name">sale.order.export.wizard.form</field>
+        <field name="model">sale.order.export.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Export Sale Orders">
+                <sheet>
+                    <group attrs="{'invisible': [('state', '=', 'ready')]}">
+                        <label string="Select \&amp; export the chosen sale orders to a structured Excel file."/>
+                    </group>
+                    <group attrs="{'invisible': [('state', '!=', 'ready')]}">
+                        <field name="export_filename" readonly="1"/>
+                        <field name="export_file" filename="export_filename" readonly="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_export" string="Export" type="object" class="btn-primary" attrs="{'invisible': [('state', '=', 'ready')]}"/>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sale_order_export_wizard" model="ir.actions.act_window">
+        <field name="name">Export Sale Orders</field>
+        <field name="res_model">sale.order.export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sale_order_export_wizard_form"/>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">action</field>
+        <field name="context">{"default_state": "choose"}</field>
+    </record>
+</odoo>
