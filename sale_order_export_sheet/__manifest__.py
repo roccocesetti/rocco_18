@@ -14,7 +14,7 @@ Export selected sale orders to a pre-defined spreadsheet template
     "depends": [
         "sale_management",
         "spreadsheet",
-        "sales",# or documents_spreadsheet, verify the exact name
+        "sale",# or documents_spreadsheet, verify the exact name
     ],
     "data": [
         # "security/ir.model.access.csv",
