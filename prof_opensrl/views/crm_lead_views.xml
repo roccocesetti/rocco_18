@@ -23,73 +23,28 @@
   <record id="crm_lead_kanban_show_address" model="ir.ui.view">
     <field name="name">crm.lead.kanban.show.address</field>
     <field name="model">crm.lead</field>
-    <field name="inherit_id" ref="crm.crm_lead_view_kanban"/>
+    <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
     <field name="arch" type="xml">
-      <xpath expr="//div[contains(@class, 'o_kanban_primary_bottom')]" position="inside">
-        <!-- Aggiunta dei dati anagrafici principali nell'intestazione della card -->
-        <div class="o_crm_lead_company mt-2">
-          <t t-if="record.partner_id.value">
-            <span class="fa fa-building mr-2" aria-hidden="true"/>
-            <span t-field="record.partner_id"/>
-          </t>
-        </div>
-        <!-- Aggiunta indirizzo con CAP, città e provincia -->
-        <div class="o_crm_lead_address">
-          <t t-if="record.street.value">
-            <div>
-              <span class="fa fa-map-marker mr-2" aria-hidden="true"/>
-              <span t-field="record.street"/>
-            </div>
-          </t>
-          <t t-if="record.zip.value or record.city.value or record.state_id.value">
-            <div class="ml-4">
-              <t t-if="record.zip.value">
-                <span t-esc="record.zip.value"/>
-              </t>
-              <t t-if="record.city.value">
-                <span>
-                  <t t-if="record.zip.value"> </t>
-                  <span t-esc="record.city.value"/>
-                </span>
-              </t>
-              <t t-if="record.state_id.value">
-                <span>
-                  <t t-if="record.zip.value or record.city.value">, </t>
-                  <span t-esc="record.state_id.value"/>
-                </span>
-              </t>
-            </div>
-          </t>
-        </div>
-      </xpath>
+
+     <xpath expr="//field[@name='partner_id']" position="replace">
+       <field name="partner_name"/>
+       <field name="street"/><field name="zip"/><field name="city"/><field name="state_id"/>
+
+</xpath>
+
     </field>
   </record>
 
-  <record id="crm_lead_form_hide_marketing_tracking" model="ir.ui.view">
-    <field name="name">crm.lead.form.hide.marketing.tracking</field>
-    <field name="model">crm.lead</field>
-    <field name="inherit_id" ref="crm.crm_lead_view_form"/>
-    <field name="arch" type="xml">
-      <!-- Nasconde il gruppo Marketing per tutti gli utenti -->
-      <xpath expr="//group[@name='lead_marketing'] | //group[@string='Marketing']" position="attributes">
-        <attribute name="groups">base.group_no_one</attribute>
-      </xpath>
-      <!-- Nasconde il gruppo Tracciabilità/Tracking per tutti gli utenti -->
-      <xpath expr="//group[@name='lead_tracking'] | //group[@string='Tracking'] | //group[@string='Tracciabilità']" position="attributes">
-        <attribute name="groups">base.group_no_one</attribute>
-      </xpath>
-    </field>
-  </record>
+
+
 
   <record id="crm_lead_search_add_state_country" model="ir.ui.view">
     <field name="name">crm.lead.search.add.state.country</field>
     <field name="model">crm.lead</field>
-    <field name="inherit_id" ref="crm.view_crm_case_leads_filter"/>
+    <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
     <field name="arch" type="xml">
       <!-- Restrizione dei campi di ricerca visibili solo al manager vendite -->
-      <xpath expr="//field[@name='stage_id']" position="attributes">
-        <attribute name="groups">sales_team.group_sale_manager</attribute>
-      </xpath>
+
       <xpath expr="//field[@name='team_id']" position="attributes">
         <attribute name="groups">sales_team.group_sale_manager</attribute>
       </xpath>
@@ -100,7 +55,7 @@
         <attribute name="groups">sales_team.group_sale_manager</attribute>
       </xpath>
       <!-- Il campo Proprietà può essere esposto come property_id o company_id a seconda della versione -->
-      <xpath expr="//field[@name='property_id'] | //field[@name='company_id']" position="attributes">
+      <xpath expr="//field[@name='lead_properties'] | //field[@name='activity_state']" position="attributes">
         <attribute name="groups">sales_team.group_sale_manager</attribute>
       </xpath>
 
