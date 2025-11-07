@@ -14,11 +14,12 @@ Export selected sale orders to a pre-defined spreadsheet template
     "depends": [
         "sale_management",
         "spreadsheet",
-        "sale",# or documents_spreadsheet, verify the exact name
+        "sale",
+        'utm',# or documents_spreadsheet, verify the exact name
     ],
     "data": [
-        # "security/ir.model.access.csv",
-        "wizard/sale_export_wizard_views.xml",
+        "security/ir.model.access.csv",
+        "views/sale_order_export_wizard_views.xml",
         # "views/sale_order_views.xml",
         # "data/sale_export_actions.xml",
     ],

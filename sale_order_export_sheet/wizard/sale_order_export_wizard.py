@@ -8,7 +8,6 @@ import io
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-
 class SaleOrderExportWizard(models.TransientModel):
     """Wizard used to export selected sale orders to XLSX."""
 
@@ -61,7 +60,7 @@ class SaleOrderExportWizard(models.TransientModel):
                 rows.append(
                     {
                         "partner_name": partner.display_name or "",
-                        "partner_cap": partner.cap or "",
+                        "partner_cap": partner.zip or "",
                         "partner_city": partner.city or "",
                         "partner_state": state_code or "IT",
                         "description": line.product_id.display_name
@@ -100,7 +99,7 @@ class SaleOrderExportWizard(models.TransientModel):
             "picking_ids",
         ])
         partners = orders.mapped("partner_id")
-        partners.read(["display_name", "cap", "city", "state_id", "mobile", "email"])
+        partners.read(["display_name", "zip", "city", "state_id", "mobile", "email"])
         partners.mapped("state_id").read(["code"])
         order_lines = orders.mapped("order_line")
         order_lines.read([
@@ -163,7 +162,7 @@ class SaleOrderExportWizard(models.TransientModel):
 
         # Write headers and define column widths as per COLUMN_SPECS
         for col_index, (key, (title, width)) in enumerate(self.COLUMN_SPECS.items()):
-            worksheet.write(0, col_index, _(title), header_format)
+            worksheet.write(0, col_index, (title), header_format)
             worksheet.set_column(col_index, col_index, width)
 
         for row_index, row in enumerate(rows, start=1):
