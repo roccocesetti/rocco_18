@@ -18,7 +18,7 @@ Export selected sale orders to a pre-defined spreadsheet template
     ],
     "data": [
         # "security/ir.model.access.csv",
-        # "wizard/sale_export_wizard_views.xml",
+        "wizard/sale_export_wizard_views.xml",
         # "views/sale_order_views.xml",
         # "data/sale_export_actions.xml",
     ],

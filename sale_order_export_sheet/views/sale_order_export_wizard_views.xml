@@ -32,13 +32,4 @@
         <field name="binding_type">action</field>
         <field name="context">{"default_state": "choose"}</field>
     </record>
-    <record id="action_open_sale_order_export_wizard" model="ir.actions.act_window">
-    <field name="name">Export ordini</field>
-    <field name="res_model">sale.order.export.wizard</field>
-    <field name="view_mode">form</field>
-    <field name="target">new</field>
-    <field name="context">{'active_model': 'sale.order'}</field>
-    <field name="groups_id" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
-</record>
-
 </odoo>
