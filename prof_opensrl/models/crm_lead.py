@@ -9,14 +9,70 @@ _logger = logging.getLogger(__name__)
 class CrmLead(models.Model):
     _inherit = "crm.lead"
 
+    becomes_customer = fields.Boolean(string="Diventa cliente")
+    customer_image = fields.Image(string="Immagine cliente")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        leads = super().create(vals_list)
+        leads_to_generate = leads.filtered(
+            lambda lead: lead.becomes_customer and not lead.partner_id
+        )
+        if leads_to_generate:
+            leads_to_generate._generate_customer_from_lead()
+        return leads
+
     def write(self, vals):
         # Se la data di chiusura viene modificata, assegna l'opportunità all'utente corrente.
         # Usiamo setdefault per non sovrascrivere un user_id passato esplicitamente dal chiamante.
         if "date_deadline" in vals and not self.env.context.get("skip_assign_on_deadline_change"):
             vals = dict(vals)  # copia per non mutare il dict originale del chiamante
             vals.setdefault("user_id", self.env.uid)
-        return super().write(vals)
+        leads_to_generate = self.env[self._name]
+        if vals.get("becomes_customer"):
+            leads_to_generate = self.filtered(
+                lambda lead: not lead.becomes_customer and not lead.partner_id
+            )
+        res = super().write(vals)
+        if vals.get("becomes_customer") and leads_to_generate:
+            leads_to_generate._generate_customer_from_lead()
+        return res
 
+    def _generate_customer_from_lead(self):
+        Partner = self.env["res.partner"].sudo()
+        for lead in self:
+            if not lead.becomes_customer or lead.partner_id:
+                continue
+
+            contact_name = lead.partner_name or lead.contact_name or lead.name
+            if not contact_name:
+                contact_name = _("Contatto da opportunità %s") % lead.id
+
+            partner_vals = {
+                "name": contact_name,
+                "email": lead.email_from,
+                "phone": lead.phone,
+                "mobile": lead.mobile,
+                "street": lead.street,
+                "street2": lead.street2,
+                "zip": lead.zip,
+                "city": lead.city,
+                "state_id": lead.state_id.id,
+                "country_id": lead.country_id.id,
+                "company_id": lead.company_id.id,
+                "user_id": lead.user_id.id or self.env.user.id,
+                "customer_rank": 1,
+            }
+
+            if lead.customer_image:
+                partner_vals["image_1920"] = lead.customer_image
+
+            partner = Partner.create(partner_vals)
+            lead.with_context(skip_assign_on_deadline_change=True).write({
+                "partner_id": partner.id,
+            })
+
+        
 
 class CrmLeadCron(models.Model):
     _inherit = "crm.lead"
