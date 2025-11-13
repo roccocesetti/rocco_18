@@ -34,7 +34,15 @@ class CrmLead(models.Model):
                 lambda lead: not lead.becomes_customer and not lead.partner_id
             )
         res = super().write(vals)
+        if vals.get("becomes_customer"):
+            vals = dict(vals)  # copia per non mutare il dict originale del chiamante
+            vals.setdefault("user_id", self.env.uid)
+            res = super().write(vals)
+
         if vals.get("becomes_customer") and leads_to_generate:
+            vals = dict(vals)  # copia per non mutare il dict originale del chiamante
+            vals.setdefault("user_id", self.env.uid)
+            res = super().write(vals)
             leads_to_generate._generate_customer_from_lead()
         return res
 
