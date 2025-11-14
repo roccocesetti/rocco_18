@@ -71,7 +71,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "colli": 1,
                         "peso": 1,
                         "contra": "",
-                        "order_name": order.name or "",
+                        "order_name": order.origin or order.name or "",
                         "partner_mobile": partner.mobile.replace('+39','') if partner.mobile else "" or "",
                         "partner_email": partner.email or "",
                     }
@@ -221,7 +221,7 @@ class SaleOrderExportWizard(models.TransientModel):
 
         # Costruzione CSV
         sio = io.StringIO(newline="")
-        self._build_csv(sio, rows, delimiter=";")
+        self._build_csv(sio, rows)
 
         # Aggiungo BOM UTF-8 per compatibilità Excel
         export_content = ("\ufeff" + sio.getvalue()).encode("utf-8")
@@ -244,31 +244,53 @@ class SaleOrderExportWizard(models.TransientModel):
             "target": "new",
         }
 
+    def _get_csv_delimiter(self):
+        """Ritorna il delimitatore CSV leggendo da ir.config_parameter con normalizzazione."""
+        param_val = self.env["ir.config_parameter"].sudo().get_param(
+            "sale_order_export_sheet.csv_delimiter", default=";"
+        )
+        d = (param_val or ";").strip().lower()
+        if d in {"\\t", "tab", "tabulatore"}:
+            return "\t"
+        if d in {"comma", "virgola"}:
+            return ","
+        if d in {"semicolon", "puntoevirgola"}:
+            return ";"
+        return d if d == "\t" or len(d) == 1 else ";"
 
-    def _build_csv(self, output, rows, delimiter=";"):
-        """Crea il CSV su ``output`` usando i dati preparati in ``rows``."""
+    def _sanitize_csv_value(self, val):
+        """Uniforma i valori per il CSV (header incluse): niente a-capo, niente recordset."""
+        if val is None:
+            return ""
+        if hasattr(val, "display_name"):
+            val = val.display_name or ""
+        s = str(val)
+        # Evita “colonne spostate” in Excel dovute a newline
+        s = s.replace("\r\n", "\n").replace("\r", "\n").replace("\n", " ")
+        return s
+
+    def _build_csv(self, output, rows, delimiter=None):
+        """Crea il CSV su ``output`` usando lo stesso criterio per header e righe."""
+        delimiter = delimiter or self._get_csv_delimiter()
+
         writer = csv.writer(
             output,
             delimiter=delimiter,
             quotechar='"',
-            quoting=csv.QUOTE_MINIMAL,
+            quoting=csv.QUOTE_ALL,  # <-- identico per header e righe
             lineterminator="\n",
+            escapechar="\\",
         )
 
-        # Intestazioni dalle COLUMN_SPECS (title)
-        headers = [title for _, (title, _width) in self.COLUMN_SPECS.items()]
-        writer.writerow(headers)
+        # HEADER: stessi passaggi delle righe
+        headers = []
+        for _key, (title, _width) in self.COLUMN_SPECS.items():
+            headers.append(self._sanitize_csv_value(title))  # <-- sanitizzazione identica
+        writer.writerow(headers)  # <-- passa dal writer (quindi stesso delimiter/quoting)
 
-        # Righe dati
+        # RIGHE: stesso identico trattamento
         for row in rows:
             csv_row = []
             for key, _spec in self.COLUMN_SPECS.items():
-                val = row.get(key)
-                # Normalizza None -> "" e conversione a stringa quando serve
-                if val is None:
-                    val = ""
-                # Evita oggetti record nei valori
-                if hasattr(val, "display_name"):
-                    val = val.display_name or ""
-                csv_row.append(val)
+                csv_row.append(self._sanitize_csv_value(row.get(key)))
             writer.writerow(csv_row)
