@@ -41,7 +41,10 @@
                         attrs="{'invisible': [('state', '=', 'ready')]}"/>
                 -->
                 <!-- DOPO -->
-                <button name="action_export" string="Export" type="object"
+                <button name="action_export_csv" string="Export CSV" type="object"
+                        class="btn-primary"
+                        invisible="state == 'ready'"/>
+               <button name="action_export" string="Export" type="object"
                         class="btn-primary"
                         invisible="state == 'ready'"/>
 

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """Wizard to export sale orders to an Excel spreadsheet."""
 
-import base64
-from collections import OrderedDict
-import io
 
+from collections import OrderedDict
+import io, base64, csv
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -56,6 +55,9 @@ class SaleOrderExportWizard(models.TransientModel):
             peso = sum(
                 p.shipping_weight or 1.0 for p in order.picking_ids if p.state != "cancel"
             )
+            for pick in order.picking_ids:
+                partner = pick.partner_id
+
             for line in order.order_line:
                 rows.append(
                     {
@@ -66,14 +68,15 @@ class SaleOrderExportWizard(models.TransientModel):
                         "description": line.product_id.display_name
                         or line.name
                         or "",
-                        "colli": colli,
-                        "peso": peso,
+                        "colli": 1,
+                        "peso": 1,
                         "contra": "",
                         "order_name": order.name or "",
-                        "partner_mobile": partner.mobile or "",
+                        "partner_mobile": partner.mobile.replace('+39','') if partner.mobile else "" or "",
                         "partner_email": partner.email or "",
                     }
                 )
+                break
         return rows
 
     def action_export(self):
@@ -175,3 +178,97 @@ class SaleOrderExportWizard(models.TransientModel):
 
         workbook.close()
 
+    def action_export_csv(self):
+        """Genera il file CSV e ritorna il wizard in stato di download."""
+        self.ensure_one()
+
+        active_model = self.env.context.get("active_model")
+        active_ids = self.env.context.get("active_ids") or []
+        if active_model != "sale.order" or not active_ids:
+            raise UserError(
+                _("Please select at least one sale order to export from the list view.")
+            )
+
+        orders = self.env["sale.order"].browse(active_ids).exists()
+        if not orders:
+            raise UserError(_("The selected sale orders are no longer available."))
+
+        # Prefetch come nell'XLSX
+        orders.read([
+            "name",
+            "partner_id",
+            "order_line",
+            "picking_ids",
+        ])
+        partners = orders.mapped("partner_id")
+        partners.read(["display_name", "zip", "city", "state_id", "mobile", "email"])
+        partners.mapped("state_id").read(["code"])
+        order_lines = orders.mapped("order_line")
+        order_lines.read([
+            "product_id",
+            "name",
+            "product_uom_qty",
+            "qty_delivered",
+        ])
+        order_lines.mapped("product_id").read(["display_name"])
+        pickings = orders.mapped("picking_ids")
+        if pickings:
+            pickings.read(["state", "l10n_it_parcels", "shipping_weight"])
+
+        rows = self._prepare_lines(orders)
+        if not rows:
+            raise UserError(_("The selected sale orders do not contain any order lines."))
+
+        # Costruzione CSV
+        sio = io.StringIO(newline="")
+        self._build_csv(sio, rows, delimiter=";")
+
+        # Aggiungo BOM UTF-8 per compatibilità Excel
+        export_content = ("\ufeff" + sio.getvalue()).encode("utf-8")
+        if not export_content:
+            raise UserError(_("Unable to generate the export file. Please try again."))
+
+        filename = "sale_orders_%s.csv" % fields.Date.context_today(self)
+        self.write(
+            {
+                "export_file": base64.b64encode(export_content),
+                "export_filename": filename,
+                "state": "ready",
+            }
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": self._name,
+            "view_mode": "form",
+            "res_id": self.id,
+            "target": "new",
+        }
+
+
+    def _build_csv(self, output, rows, delimiter=";"):
+        """Crea il CSV su ``output`` usando i dati preparati in ``rows``."""
+        writer = csv.writer(
+            output,
+            delimiter=delimiter,
+            quotechar='"',
+            quoting=csv.QUOTE_MINIMAL,
+            lineterminator="\n",
+        )
+
+        # Intestazioni dalle COLUMN_SPECS (title)
+        headers = [title for _, (title, _width) in self.COLUMN_SPECS.items()]
+        writer.writerow(headers)
+
+        # Righe dati
+        for row in rows:
+            csv_row = []
+            for key, _spec in self.COLUMN_SPECS.items():
+                val = row.get(key)
+                # Normalizza None -> "" e conversione a stringa quando serve
+                if val is None:
+                    val = ""
+                # Evita oggetti record nei valori
+                if hasattr(val, "display_name"):
+                    val = val.display_name or ""
+                csv_row.append(val)
+            writer.writerow(csv_row)
