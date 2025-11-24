@@ -46,7 +46,7 @@
                         invisible="state == 'ready'"/>
                <button name="action_export" string="Export" type="object"
                         class="btn-primary"
-                        invisible="state == 'ready'"/>
+                        invisible="1"/>
 
                 <button string="Close" special="cancel" class="btn-secondary"/>
             </footer>

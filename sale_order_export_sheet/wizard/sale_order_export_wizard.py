@@ -25,6 +25,7 @@ class SaleOrderExportWizard(models.TransientModel):
     COLUMN_SPECS = OrderedDict(
         [
             ("partner_name", ("NOME", 30)),
+            ("partner_name", ("NOME", 30)),
             ("partner_cap", ("CAP", 12)),
             ("partner_city", ("CITTA", 20)),
             ("partner_state", ("PROVINCIA", 12)),
@@ -56,24 +57,100 @@ class SaleOrderExportWizard(models.TransientModel):
                 p.shipping_weight or 1.0 for p in order.picking_ids if p.state != "cancel"
             )
             for pick in order.picking_ids:
-                partner = pick.partner_id
+                partner_rit = pick.partner_id
 
             for line in order.order_line:
                 rows.append(
                     {
-                        "partner_name": partner.display_name or "",
-                        "partner_cap": partner.zip or "",
-                        "partner_city": partner.city or "",
-                        "partner_state": state_code or "IT",
-                        "description": line.product_id.display_name
-                        or line.name
-                        or "",
-                        "colli": 1,
-                        "peso": 1,
-                        "contra": "",
-                        "order_name": order.origin or order.name or "",
-                        "partner_mobile": partner.mobile.replace('+39','') if partner.mobile else "" or "",
-                        "partner_email": partner.email or "",
+                        "CHANNEL": "STAMPAMASSIVA",
+                        "CODICE_CONTRATTO": "SFA-01038898",
+                        "CENTRO_COSTO": "CDC-00064891",
+                        "CODICE_IDENTIFICATIVO_CLIENTE": "88645324",
+                        "PRODOTTO": "APT000902",
+                        "COGNOME_RAGSOC_MITTENTE": partner.display_name or "",
+                        "CONTATTO_MITTENTE_REF": "",
+                        "EMAIL_MITTENTE": order.company_id.email or "",
+                        "NUMERO_TELEFONO_MITTENTE": order.company_id.phone or "",
+                        "NUMERO_CELLULARE_MITTENTE": order.company_id.mobile or "",
+                        "NUMERO_TELEFONO_MITTENTE": order.company_id.phone or "",
+                        "VIA_MITTENTE": order.company_id.street or "",
+                        "NUMERO_CIVICO_MITTENTE": "snc",
+                        "CAP_MITTENTE": order.company_id.zip or "",
+                        "LOCALITA_MITTENTE": order.company_id.city or "",
+                        "PROVINCIA_MITTENTE": order.company_id.state_id.code or "",
+                        "CODICE_NAZIONE_MITTENTE": order.company_id.country_id.code or "",
+                        "NAZIONE_MITTENTE": order.company_id.country_id.name or "",
+                        "NOTE1_MITTENTE": "",
+                        "COGNOME_RAGSOC_DESTINATARIO": partner.display_name or "",
+                        "CONTATTO_DESTINATARIO_REF": partner.ref or "",
+                        "EMAIL_DESTINATARIO": partner.email or "",
+                        "NUMERO_TELEFONO_DESTINATARIO": partner.phone or "",
+                        "NUMERO_CELLULARE_DESTINATARIO": partner.mobile or "",
+                        "VIA_DESTINATARIO": partner.street or "",
+                        "NUMERO_CIVICO_DESTINATARIO": "snc",
+                        "VIA_DESTINATARIO": partner.street or "",
+                        "CAP_DESTINATARIO": partner.zip or "",
+                        "LOCALITA_DESTINATARIO": partner.city or "",
+                        "PROVINCIA_DESTINATARIO": state_code or "IT",
+                        "CODICE_NAZIONE_DESTINATARIO": partner.country_id.code or "IT",
+                        "NAZIONE_DESTINATARIO": partner.country_id.name or "IT",
+                        "NOTE1_DESTINATARIO": order.note or "",
+                        "COGNOME_RAGSOC_RITIRO": partner_rit.country_id.code or "IT",
+                        "CONTATTO_RITIRO_REF": partner_rit.ref or "",
+                        "EMAIL_RITIRO": partner_rit.email or "",
+                        "NUMERO_TELEFONO_RITIRO": partner_rit.phone or "",
+                        "NUMERO_CELLULARE_RITIRO": partner_rit.mobile or "",
+                        "VIA_RITIRO": partner_rit.street or "",
+                        "NUMERO_CIVICO_RITIRO": "snc",
+                        "VIA_RITIRO": partner_rit.street or "",
+                        "CAP_RITIRO": partner_rit.zip or "",
+                        "LOCALITA_RITIRO": partner.city or "",
+                        "PROVINCIA_RITIRO": state_code or "IT",
+                        "CODICE_NAZIONE_RITIRO": partner_rit.country_id.code or "IT",
+                        "NAZIONE_RITIRO": partner_rit.country_id.name or "IT",
+                        "NOTE1_RITIRO": pick.l10n_it_transport_method_details or "",
+                        "ID_LDV": "",
+                        "NUMERO_RIFERIMENTO_SPEDIZIONE": order.origin or "",
+                        "IDENTIFICATIVO_COLLO": order.origin or "",
+                        "NUMERO_COLLI": 1,
+                        "PESO_COLLO": 1000,
+                        "LARGHEZZA": "",
+                        "ALTEZZA": "",
+                        "PROFONDITA": "",
+                        "RITIRO_VOLUMETRICO": "",
+                        "DATA_SPEDIZIONE_RITIRO": order.commitment_date.date() if order.commitment_date else pick.scheduled_date.date() if pick.scheduled_date else False,
+                        "COL01": "",
+                        "COL02": "",
+                        "COL03": "",
+                        "COL04": "",
+                        "COL05": "",
+                        "COL06": "",
+                        "COL07": "",
+                        "COL08": "",
+                        "COL10": "",
+                        "COL11": "",
+                        "COL12": "",
+                        "COL13": "",
+                        "COL14": "",
+                        "COL15": "",
+                        "COL16": "",
+                        "COL17": "",
+                        "COL18": "",
+                        "COL19": "",
+                        "COL20": "",
+                        "COL21": "",
+                        "COL22": "",
+
+
+                        #"description": line.product_id.display_name
+                        #or line.name
+                        #or "",
+                        #"colli": 1,
+                        #"peso": 1,
+                        #"contra": "",
+                        #"order_name": order.origin or order.name or "",
+                        #"partner_mobile": partner.mobile.replace('+39','') if partner.mobile else "" or "",
+                        #"partner_email": partner.email or "",
                     }
                 )
                 break
@@ -284,13 +361,16 @@ class SaleOrderExportWizard(models.TransientModel):
 
         # HEADER: stessi passaggi delle righe
         headers = []
-        for _key, (title, _width) in self.COLUMN_SPECS.items():
-            headers.append(self._sanitize_csv_value(title))  # <-- sanitizzazione identica
-        writer.writerow(headers)  # <-- passa dal writer (quindi stesso delimiter/quoting)
+        if rows:
+            for row in rows:
+                for key, value in row.items():
+                    print(key, value)
+                    headers.append(self._sanitize_csv_value(key))  # <-- sanitizzazione identica
+            writer.writerow(headers)  # <-- passa dal writer (quindi stesso delimiter/quoting)
 
-        # RIGHE: stesso identico trattamento
-        for row in rows:
-            csv_row = []
-            for key, _spec in self.COLUMN_SPECS.items():
-                csv_row.append(self._sanitize_csv_value(row.get(key)))
-            writer.writerow(csv_row)
+            # RIGHE: stesso identico trattamento
+            for row in rows:
+                csv_row = []
+                for key, _spec in row.items():
+                    csv_row.append(self._sanitize_csv_value(row.get(key)))
+                writer.writerow(csv_row)
