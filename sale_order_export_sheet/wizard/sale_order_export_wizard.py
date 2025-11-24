@@ -57,8 +57,10 @@ class SaleOrderExportWizard(models.TransientModel):
                 p.shipping_weight or 1.0 for p in order.picking_ids if p.state != "cancel"
             )
             partner_rit=partner
+            l10n_it_transport_method_details=""
             for pick in order.picking_ids:
                 partner_rit = pick.partner_id
+                l10n_it_transport_method_details=pick.l10n_it_transport_method_details
 
             for line in order.order_line:
                 rows.append(
@@ -109,7 +111,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "PROVINCIA_RITIRO": state_code or "IT",
                         "CODICE_NAZIONE_RITIRO": partner_rit.country_id.code or "IT",
                         "NAZIONE_RITIRO": partner_rit.country_id.name or "IT",
-                        "NOTE1_RITIRO": pick.l10n_it_transport_method_details or "",
+                        "NOTE1_RITIRO": l10n_it_transport_method_details or "",
                         "ID_LDV": "",
                         "NUMERO_RIFERIMENTO_SPEDIZIONE": order.origin or "",
                         "IDENTIFICATIVO_COLLO": order.origin or "",
