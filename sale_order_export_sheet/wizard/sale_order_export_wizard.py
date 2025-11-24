@@ -56,6 +56,7 @@ class SaleOrderExportWizard(models.TransientModel):
             peso = sum(
                 p.shipping_weight or 1.0 for p in order.picking_ids if p.state != "cancel"
             )
+            partner_rit=partner
             for pick in order.picking_ids:
                 partner_rit = pick.partner_id
 
