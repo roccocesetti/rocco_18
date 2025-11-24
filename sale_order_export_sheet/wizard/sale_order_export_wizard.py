@@ -6,6 +6,9 @@ from collections import OrderedDict
 import io, base64, csv
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from datetime import date
+
+
 
 class SaleOrderExportWizard(models.TransientModel):
     """Wizard used to export selected sale orders to XLSX."""
@@ -46,6 +49,7 @@ class SaleOrderExportWizard(models.TransientModel):
         :param orders: recordset of ``sale.order``
         :return: list of dictionaries containing the row data
         """
+        today = date.today()
         rows = []
         for order in orders:
             partner = order.partner_id
@@ -124,7 +128,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "ALTEZZA": "",
                         "PROFONDITA": "",
                         "RITIRO_VOLUMETRICO": "",
-                        "DATA_SPEDIZIONE_RITIRO": order.commitment_date.date() if order.commitment_date else scheduled_date if order.picking_ids else False,
+                        "DATA_SPEDIZIONE_RITIRO": order.commitment_date.date() if order.commitment_date else scheduled_date if order.picking_ids else today,
                         "COL01": "",
                         "COL02": "",
                         "COL03": "",
