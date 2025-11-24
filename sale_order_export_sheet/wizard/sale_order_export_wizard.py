@@ -58,9 +58,12 @@ class SaleOrderExportWizard(models.TransientModel):
             )
             partner_rit=partner
             l10n_it_transport_method_details=""
+            scheduled_date=""
             for pick in order.picking_ids:
-                partner_rit = pick.partner_id
-                l10n_it_transport_method_details=pick.l10n_it_transport_method_details
+                if pick.state !='cancel':
+                    partner_rit = pick.partner_id
+                    l10n_it_transport_method_details=pick.l10n_it_transport_method_details
+                    scheduled_date=pick.scheduled_date.date()
 
             for line in order.order_line:
                 rows.append(
@@ -121,7 +124,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "ALTEZZA": "",
                         "PROFONDITA": "",
                         "RITIRO_VOLUMETRICO": "",
-                        "DATA_SPEDIZIONE_RITIRO": order.commitment_date.date() if order.commitment_date else pick.scheduled_date.date() if pick and pick.scheduled_date else False,
+                        "DATA_SPEDIZIONE_RITIRO": order.commitment_date.date() if order.commitment_date else scheduled_date if order.picking_ids else False,
                         "COL01": "",
                         "COL02": "",
                         "COL03": "",
