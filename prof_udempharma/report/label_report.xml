@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="paperformat_picking_label_10x62" model="report.paperformat">
+            <field name="name">Etichetta 62x10mm</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="page_width">62</field>
+            <field name="page_height">10</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">1</field>
+            <field name="margin_bottom">1</field>
+            <field name="margin_left">1</field>
+            <field name="margin_right">1</field>
+            <field name="format">custom</field>
+            <field name="dpi">300</field>
+        </record>
+
+        <template id="report_stock_picking_label">
+            <t t-call="web.external_layout_clean">
+                <style type="text/css">
+                    .picking-label {
+                        width: 62mm;
+                        height: 10mm;
+                        padding: 0.5mm 1mm;
+                        box-sizing: border-box;
+                        display: flex;
+                        align-items: center;
+                    }
+                    .label-body {
+                        width: 100%;
+                        font-size: 9px;
+                        line-height: 1.1;
+                    }
+                    .label-header {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 2mm;
+                        font-weight: 700;
+                        margin-bottom: 1mm;
+                    }
+                    .label-code {
+                        font-size: 11px;
+                        font-weight: 700;
+                        white-space: nowrap;
+                    }
+                    .label-barcode {
+                        text-align: center;
+                        margin-bottom: 1mm;
+                    }
+                    .barcode-img {
+                        max-height: 6mm;
+                        width: 100%;
+                        object-fit: contain;
+                    }
+                    .label-lot {
+                        font-size: 8px;
+                        white-space: nowrap;
+                    }
+                    .label-footer {
+                        display: flex;
+                        justify-content: flex-start;
+                        font-size: 8px;
+                        font-weight: 600;
+                    }
+                </style>
+                <t t-foreach="docs" t-as="picking">
+                    <t t-foreach="picking.move_line_ids" t-as="line">
+                        <t t-if="line.product_id">
+                            <div class="page picking-label">
+                                <div class="label-body">
+                                    <div class="label-header">
+                                        <span class="label-code" t-esc="line.product_id.default_code or line.product_id.display_name"/>
+                                        <span class="label-lot">Lotto: <t t-esc="line.lot_id.name or '-'"/></span>
+                                    </div>
+                                    <div class="label-barcode">
+                                        <t t-if="line.product_id.barcode">
+                                            <img t-att-src="'data:image/png;base64,%s' % barcode('Code128', line.product_id.barcode, height=40, humanreadable=True)" alt="Barcode" class="barcode-img"/>
+                                        </t>
+                                        <t t-else="">Nessun barcode</t>
+                                    </div>
+                                    <div class="label-footer">
+                                        <span>Scadenza:
+                                            <t t-set="exp_date" t-value="line.lot_id.expiration_date or line.lot_id.use_date"/>
+                                            <t t-if="exp_date">
+                                                <t t-esc="exp_date.strftime('%d/%m/%Y')"/>
+                                            </t>
+                                            <t t-else="">-</t>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </t>
+            </t>
+        </template>
+
+        <record id="action_report_stock_picking_label" model="ir.actions.report">
+            <field name="name">Etichette 62x10mm</field>
+            <field name="model">stock.picking</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">prof_udempharma.report_stock_picking_label</field>
+            <field name="report_file">prof_udempharma.report_stock_picking_label</field>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="paperformat_picking_label_10x62"/>
+            <field name="print_report_name">'Etichetta - %s' % (object.name)</field>
+        </record>
+    </data>
+</odoo>
