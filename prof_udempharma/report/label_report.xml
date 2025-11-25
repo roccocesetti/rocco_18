@@ -3,7 +3,6 @@
     <data>
         <record id="paperformat_picking_label_10x62" model="report.paperformat">
             <field name="name">Etichetta 62x10mm</field>
-            <field name="report_type">qweb-pdf</field>
             <field name="page_width">62</field>
             <field name="page_height">10</field>
             <field name="orientation">Landscape</field>
