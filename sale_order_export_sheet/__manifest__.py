@@ -7,8 +7,8 @@ Export selected sale orders to a pre-defined spreadsheet template
 (Google Sheets-like in Odoo). Adds an export wizard, actions, and access rules.
 """,
     "version": "18.0.1.0.0",
-    "author": "Rocco",
-    "website": "https://www.example.com",
+    "author": "ideasoft",
+    "website": "https://www.ideawork.it",
     "license": "LGPL-3",  # or "OPL-1" / your actual choice
     "category": "Sales/Reporting",
     "depends": [
