@@ -62,18 +62,21 @@
                         font-weight: 600;
                     }
                 </style>
+                <t t-set="barcode_fn" t-value="barcode or (lambda *a, **kw: False)"/>
                 <t t-foreach="docs" t-as="picking">
                     <t t-foreach="picking.move_line_ids" t-as="line">
                         <t t-if="line.product_id">
+                            <t t-set="code_value" t-value="line.product_id.default_code or line.product_id.display_name"/>
+                            <t t-set="barcode_value" t-value="line.product_id.barcode or line.product_id.default_code"/>
                             <div class="page picking-label">
                                 <div class="label-body">
                                     <div class="label-header">
-                                        <span class="label-code" t-esc="line.product_id.default_code or line.product_id.display_name"/>
+                                        <span class="label-code" t-esc="code_value"/>
                                         <span class="label-lot">Lotto: <t t-esc="line.lot_id.name or '-'"/></span>
                                     </div>
                                     <div class="label-barcode">
-                                        <t t-if="line.product_id.barcode">
-                                            <img t-att-src="'data:image/png;base64,%s' % barcode('Code128', line.product_id.barcode, height=40, humanreadable=True)" alt="Barcode" class="barcode-img"/>
+                                        <t t-if="barcode_value">
+                                            <img t-att-src="'data:image/png;base64,%s' % barcode_fn('Code128', barcode_value, height=40, humanreadable=True)" alt="Barcode" class="barcode-img"/>
                                         </t>
                                         <t t-else="">Nessun barcode</t>
                                     </div>
