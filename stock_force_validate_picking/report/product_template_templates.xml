@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!-- IMPORTANT: explictly include col/row otherwise studio won't load report correctly -->
+<template id="report_label1x1">
+    <t t-call="web.basic_layout">
+        <div class="page">
+            <t t-set="columns" t-value="1"/>
+            <t t-set="rows" t-value="1"/>
+            <t t-call="stock_force_validate_picking.report_productlabel_2"/>
+        </div>
+    </t>
+</template>
+
+
+
+
+
+</odoo>
