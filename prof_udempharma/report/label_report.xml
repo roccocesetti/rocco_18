@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-<record id="paperformat_picking_label_10x62" model="report.paperformat">
-    <field name="name">Etichetta 62x10mm</field>
-    <field name="format">custom</field>
-    <field name="page_width">62</field>
-    <field name="page_height">10</field>
-    <field name="orientation">Landscape</field>
-    <field name="margin_top">1</field>
-    <field name="margin_bottom">1</field>
-    <field name="margin_left">1</field>
-    <field name="margin_right">1</field>
-    <field name="dpi">300</field>
-</record>
-
-
+        <record id="paperformat_picking_label_10x62" model="report.paperformat">
+            <field name="name">Etichetta 62x10mm</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="page_width">62</field>
+            <field name="page_height">10</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">1</field>
+            <field name="margin_bottom">1</field>
+            <field name="margin_left">1</field>
+            <field name="margin_right">1</field>
+            <field name="format">custom</field>
+            <field name="dpi">300</field>
+        </record>
 
         <template id="report_stock_picking_label">
-            <t t-call="web.external_layout">
+            <t t-call="web.html_container">
                 <style type="text/css">
                     .picking-label {
                         width: 62mm;
@@ -95,20 +94,17 @@
                 </t>
             </t>
         </template>
-<record id="action_report_stock_picking_label" model="ir.actions.report">
-    <field name="name">Etichette 62x10mm</field>
-    <field name="model">stock.picking</field>
-    <field name="report_type">qweb-pdf</field>
-    <field name="report_name">prof_udempharma.report_stock_picking_label</field>
-    <!-- report_file NON più usato in Odoo 18 -->
-    <field name="binding_model_id" ref="stock.model_stock_picking"/>
-    <field name="binding_type">report</field>
-    <field name="paperformat_id" ref="paperformat_picking_label_10x62"/>
-    <field name="print_report_name">
-        "'Etichetta - %s' % ((object.name or '').replace('/', '-'))"
-    </field>
-</record>
 
-
-     </data>
+        <record id="action_report_stock_picking_label" model="ir.actions.report">
+            <field name="name">Etichette 62x10mm</field>
+            <field name="model">stock.picking</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">prof_udempharma.report_stock_picking_label</field>
+            <field name="report_file">prof_udempharma.report_stock_picking_label</field>
+            <field name="binding_model_id" ref="stock.model_stock_picking"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="paperformat_picking_label_10x62"/>
+            <field name="print_report_name">'Etichetta - %s' % (object.name)</field>
+        </record>
+    </data>
 </odoo>
