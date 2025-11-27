@@ -107,7 +107,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "CODICE_NAZIONE_DESTINATARIO": partner_rit.country_id.code or "IT",
                         "NAZIONE_DESTINATARIO": partner_rit.country_id.name or "IT",
                         "NOTE1_DESTINATARIO": order.note or "",
-                        "COGNOME_RAGSOC_RITIRO": partner_rit.country_id.code or "IT",
+                        "COGNOME_RAGSOC_RITIRO": partner_rit.display_name or "",
                         "CONTATTO_RITIRO_REF": partner_rit.ref or "",
                         "EMAIL_RITIRO": partner_rit.email or "",
                         "NUMERO_TELEFONO_RITIRO": partner_rit.phone or "",
