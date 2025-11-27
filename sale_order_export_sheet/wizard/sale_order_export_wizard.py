@@ -62,6 +62,7 @@ class SaleOrderExportWizard(models.TransientModel):
             )
             partner_rit=partner
             l10n_it_transport_method_details=""
+            state_code_rit = partner_rit.state_id.code if partner_rit.state_id else None
             scheduled_date=""
             for pick in order.picking_ids:
                 if pick.state !='cancel':
