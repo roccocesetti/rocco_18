@@ -66,6 +66,7 @@ class SaleOrderExportWizard(models.TransientModel):
             for pick in order.picking_ids:
                 if pick.state !='cancel':
                     partner_rit = pick.partner_id
+                    state_code_rit = partner_rit.state_id.code if partner_rit.state_id else None
                     l10n_it_transport_method_details=pick.l10n_it_transport_method_details
                     scheduled_date=pick.scheduled_date.date()
 
@@ -77,9 +78,9 @@ class SaleOrderExportWizard(models.TransientModel):
                         "CENTRO_COSTO": "CDC-00064891",
                         "CODICE_IDENTIFICATIVO_CLIENTE": "88645324",
                         "PRODOTTO": "APT000902",
-                        "COGNOME_RAGSOC_MITTENTE": partner.display_name or "",
+                        "COGNOME_RAGSOC_MITTENTE": "UDEM PHARMA SRL" or "",
                         "CONTATTO_MITTENTE_REF": "",
-                        "EMAIL_MITTENTE": order.company_id.email or "",
+                        "EMAIL_MITTENTE": "logistica@udempharma.com" or "",
                         "NUMERO_TELEFONO_MITTENTE": order.company_id.phone or "",
                         "NUMERO_CELLULARE_MITTENTE": order.company_id.mobile or "",
                         "NUMERO_TELEFONO_MITTENTE": order.company_id.phone or "",
@@ -94,16 +95,16 @@ class SaleOrderExportWizard(models.TransientModel):
                         "COGNOME_RAGSOC_DESTINATARIO": partner.display_name or "",
                         "CONTATTO_DESTINATARIO_REF": partner.ref or "",
                         "EMAIL_DESTINATARIO": partner.email or "",
-                        "NUMERO_TELEFONO_DESTINATARIO": partner.phone or "",
+                        "NUMERO_TELEFONO_DESTINATARIO": partner.mobile or "",
                         "NUMERO_CELLULARE_DESTINATARIO": partner.mobile or "",
                         "VIA_DESTINATARIO": partner.street or "",
                         "NUMERO_CIVICO_DESTINATARIO": "snc",
-                        "VIA_DESTINATARIO": partner.street or "",
-                        "CAP_DESTINATARIO": partner.zip or "",
-                        "LOCALITA_DESTINATARIO": partner.city or "",
-                        "PROVINCIA_DESTINATARIO": state_code or "IT",
-                        "CODICE_NAZIONE_DESTINATARIO": partner.country_id.code or "IT",
-                        "NAZIONE_DESTINATARIO": partner.country_id.name or "IT",
+                        "VIA_DESTINATARIO": partner_rit.street or "",
+                        "CAP_DESTINATARIO": partner_rit.zip or "",
+                        "LOCALITA_DESTINATARIO": partner_rit.city or "",
+                        "PROVINCIA_DESTINATARIO": state_code_rit or "IT",
+                        "CODICE_NAZIONE_DESTINATARIO": partner_rit.country_id.code or "IT",
+                        "NAZIONE_DESTINATARIO": partner_rit.country_id.name or "IT",
                         "NOTE1_DESTINATARIO": order.note or "",
                         "COGNOME_RAGSOC_RITIRO": partner_rit.country_id.code or "IT",
                         "CONTATTO_RITIRO_REF": partner_rit.ref or "",
@@ -115,7 +116,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "VIA_RITIRO": partner_rit.street or "",
                         "CAP_RITIRO": partner_rit.zip or "",
                         "LOCALITA_RITIRO": partner.city or "",
-                        "PROVINCIA_RITIRO": state_code or "IT",
+                        "PROVINCIA_RITIRO": state_code_rit or "IT",
                         "CODICE_NAZIONE_RITIRO": partner_rit.country_id.code or "IT",
                         "NAZIONE_RITIRO": partner_rit.country_id.name or "IT",
                         "NOTE1_RITIRO": l10n_it_transport_method_details or "",

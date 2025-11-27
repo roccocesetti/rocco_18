@@ -1,109 +1,169 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-        <record id="paperformat_picking_label_10x62" model="report.paperformat">
-            <field name="name">Etichetta 62x10mm</field>
-            <field name="page_width">62</field>
-            <field name="page_height">10</field>
-            <field name="orientation">Landscape</field>
-            <field name="margin_top">1</field>
-            <field name="margin_bottom">1</field>
-            <field name="margin_left">1</field>
-            <field name="margin_right">1</field>
-            <field name="format">custom</field>
-            <field name="dpi">300</field>
-        </record>
+<!-- data/report_paperformat.xml -->
 
-        <template id="report_stock_picking_label">
+  <record id="paperformat_label_1x1" model="report.paperformat">
+    <field name="name">Etichetta Custom 1x1</field>
+    <field name="format">custom</field>
+    <field name="page_width">62</field>   <!-- mm -->
+    <field name="page_height">100</field>  <!-- mm -->
+    <field name="orientation">Landscape</field>
+    <field name="margin_top">0</field>
+    <field name="margin_bottom">0</field>
+    <field name="margin_left">0</field>
+    <field name="margin_right">0</field>
+    <field name="header_line">False</field>
+    <field name="header_spacing">0</field>
+    <field name="dpi">96</field>
+    <field name="disable_shrinking">True</field>
+  </record>
+<!-- data/report_action.xml -->
+
+ <template id="report_lot_label_1x1" name="Lot Label 1x1">
+  <t t-call="web.basic_layout">
+    <!-- 1 riga, 1 colonna -->
+    <t t-set='nRows' t-value='1'/>
+    <t t-set='nCols' t-value='1'/>
+
+    <div class="oe_structure"></div>
+
+    <!-- ogni pagina ha 1 etichetta -->
+ <!-- per ogni picking selezionato -->
+<!-- per ogni picking selezionato, stampa 1 etichetta -->
+<t t-foreach="docs" t-as="o">
+  <div class="o_label_sheet" style="padding:0">
+<!-- pagina = 62x100 mm -->
+<div style="position:relative; width:62mm; height:100mm; margin:0; padding:0; border:0; box-sizing:border-box;">
+
+  <!-- stai iterando su docs con t-as="o" -->
+  <t t-set="product" t-value="o.product_id"/>
+  <t t-set="lot" t-value="o.lot_id"/>
+
+  <!-- wrapper: allineato a sinistra al 25%, centrato verticalmente -->
+  <div style="position:absolute;top:50%;left:25%;transform:translateY(-50%);transform-origin:left center;width:75%;text-align:left;line-height:1.1;box-sizing:border-box;">
+
+    <!-- sorgenti -->
+    <t t-set="code" t-value="(product.default_code or product.display_name or '').strip()"/>
+    <t t-set="barcode_text" t-value="(product.barcode or code).strip()"/>
+    <t t-set="exp_date" t-value="lot and (lot.expiration_date or lot.use_date)"/>
+
+              <!-- 1) BARCODE Code128 con testo umano (humanreadable=1) e correzione quiet-zone -->
+          <div style="width:100%; overflow:hidden; margin-top:1mm;">
+            <img
+              t-if="barcode_text"
+              t-att-src="'/report/barcode/Code128/%s?humanreadable=1&amp;height=48' % barcode_text.replace('/', '-')"
+              alt="Code128"
+              style="display:block; margin:0; margin-left:-1.2mm; width:auto; max-width:none;"/>
+          </div>
+    <!-- 2) CODICE PRODOTTO (se vuoi tenerlo anche in chiaro oltre al testo sotto il barcode) -->
+          <div style="font-size:12pt; margin-top:2mm; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            <span t-out="code"/>
+          </div>
+
+    <!-- 3) LOTTO -->
+          <div style="font-size:11pt; margin-top:1mm; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            Lotto: <t t-out="lot and lot.name or (o.name or '-')"/>
+          </div>
+
+          <!-- 4) SCADENZA -->
+          <div style="font-size:11pt; margin-top:0.5mm; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            Scadenza:
+            <t t-if="exp_date"><t t-esc="exp_date.strftime('%d/%m/%Y')"/></t>
+            <t t-else="">-</t>
+          </div>
+
+  </div>
+</div>
+
+  </div>
+</t>
+
+   </t>
+</template>
+
+      <!-- report/report_label_1x1.xml -->
+<!-- data/report_action.xml -->
+
+  <record id="action_report_label_1x1" model="ir.actions.report">
+    <field name="name">Etichetta 1x1</field>
+    <field name="model">stock.picking</field>
+    <field name="report_type">qweb-pdf</field>
+    <field name="report_name">prof_udempharma.report_productlabel_lot1x1</field>
+    <field name="binding_model_id" ref="stock.model_stock_picking"/>
+    <field name="binding_type">report</field>
+    <field name="paperformat_id" ref="prof_udempharma.paperformat_label_1x1"/>
+    <field name="print_report_name">
+      "Etichetta - 1x1"
+    </field>
+  </record>
+
+
+          <template id="report_productlabel_lot1x1">
             <t t-call="web.html_container">
-                <style type="text/css">
-                    .picking-label {
-                        width: 62mm;
-                        height: 10mm;
-                        padding: 0.5mm 1mm;
-                        box-sizing: border-box;
-                        display: flex;
-                        align-items: center;
-                    }
-                    .label-body {
-                        width: 100%;
-                        font-size: 9px;
-                        line-height: 1.1;
-                    }
-                    .label-header {
-                        display: flex;
-                        justify-content: space-between;
-                        gap: 2mm;
-                        font-weight: 700;
-                        margin-bottom: 1mm;
-                    }
-                    .label-code {
-                        font-size: 11px;
-                        font-weight: 700;
-                        white-space: nowrap;
-                    }
-                    .label-barcode {
-                        text-align: center;
-                        margin-bottom: 1mm;
-                    }
-                    .barcode-img {
-                        max-height: 6mm;
-                        width: 100%;
-                        object-fit: contain;
-                    }
-                    .label-lot {
-                        font-size: 8px;
-                        white-space: nowrap;
-                    }
-                    .label-footer {
-                        display: flex;
-                        justify-content: flex-start;
-                        font-size: 8px;
-                        font-weight: 600;
-                    }
-                </style>
+                <t t-set="barcode_size" t-value="'width:45.5mm;height:7.5mm'"/>
+                <t t-set="table_style" t-value="'width:100%;height:32mm;margin-top:5mm;'"/>
+                <!--
+                <t t-set="table_style" t-value="'width:100%;height:32mm;'"/>
+                -->
+                <!--
+                <t t-set="padding_page" t-value="'padding: 2mm'"/>
+                -->
+                <t t-set="padding_page" t-value="'padding: 7mm 2mm 2mm 2mm'"/>
+
                 <t t-foreach="docs" t-as="picking">
                     <t t-foreach="picking.move_line_ids" t-as="line">
-                        <t t-if="line.product_id">
-                            <div class="page picking-label">
-                                <div class="label-body">
-                                    <div class="label-header">
-                                        <span class="label-code" t-esc="line.product_id.default_code or line.product_id.display_name"/>
-                                        <span class="label-lot">Lotto: <t t-esc="line.lot_id.name or '-'"/></span>
-                                    </div>
-                                    <div class="label-barcode">
-                                        <t t-if="line.product_id.barcode">
-                                            <img t-att-src="'data:image/png;base64,%s' % barcode('Code128', line.product_id.barcode, height=40, humanreadable=True)" alt="Barcode" class="barcode-img"/>
-                                        </t>
-                                        <t t-else="">Nessun barcode</t>
-                                    </div>
-                                    <div class="label-footer">
-                                        <span>Scadenza:
-                                            <t t-set="exp_date" t-value="line.lot_id.expiration_date or line.lot_id.use_date"/>
-                                            <t t-if="exp_date">
-                                                <t t-esc="exp_date.strftime('%d/%m/%Y')"/>
-                                            </t>
-                                            <t t-else="">-</t>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </t>
+                            <t t-set="product" t-value="line.product_id"/>
+                            <t t-set="barcode" t-value="product.barcode"/>
+                            <t t-set="code" t-value="product.default_code"/>
+                            <t t-set="lot" t-value="line.lot_id or False"/>
+                            <t t-set="barcode_text" t-value="product.barcode or product.default_code or product.name"/>
+                            <t t-set="exp_date" t-value="lot and (lot.expiration_date or lot.use_date) or False"/>
+                            <t t-call="prof_udempharma.report_productlabel_simplelot1x1"/>
                     </t>
                 </t>
             </t>
+
         </template>
 
-        <record id="action_report_stock_picking_label" model="ir.actions.report">
-            <field name="name">Etichette 62x10mm</field>
-            <field name="model">stock.picking</field>
-            <field name="report_type">qweb-pdf</field>
-            <field name="report_name">prof_udempharma.report_stock_picking_label</field>
-            <field name="report_file">prof_udempharma.report_stock_picking_label</field>
-            <field name="binding_model_id" ref="stock.model_stock_picking"/>
-            <field name="binding_type">report</field>
-            <field name="paperformat_id" ref="paperformat_picking_label_10x62"/>
-            <field name="print_report_name">'Etichetta - %s' % (object.name)</field>
-        </record>
+        <template id="report_productlabel_simplelot1x1">
+            <div class="o_label_sheet o_label_dymo" t-att-style="padding_page">
+                <div class="o_label_full" t-att-style="table_style">
+                    <div class= "text-start o_label_small_barcode">
+                        <t t-if="barcode_text">
+                            <!-- `quiet=0` to remove the left and right margins on the barcode -->
+                            <div t-out="barcode_text" style="padding:0" t-options="{'widget': 'barcode', 'quiet': 0, 'symbology': 'auto', 'img_style': barcode_size}"/>
+                            <div class="o_label_name" style="height:1.7em;background-color: transparent;">
+                                <span t-out="barcode_text"/>
+                            </div>
+                        </t>
+                    </div>
+
+                    <div class="o_label_left_column">
+                        Codice:<small class="text-nowrap" t-out="code" style="font-size: 0.875em;"/>
+                    </div>
+                    <div class="o_label_left_column">
+                            <t t-if="lot">
+                                Lotto/ns:<small class="text-nowrap" t-out="lot.name" style="font-size: 0.875em;"/>
+                            </t>
+                    </div>
+                    <div class="o_label_left_column">
+                            <t t-if="exp_date">
+                                Scadenza:<small class="text-nowrap"  t-esc="exp_date.strftime('%d/%m/%Y')" style="font-size: 0.875em;"/>
+                            </t>
+                    </div>
+                    <!--
+                    <div class="text-end" style="padding: 0 4px;">
+                        <strong class="o_label_price_small" t-out="pricelist._get_product_price(product, 1, pricelist.currency_id or product.currency_id)"
+                                t-options="{'widget': 'monetary', 'display_currency': pricelist.currency_id or product.currency_id, 'label_price': True}"/>
+                    </div>
+                    -->
+                </div>
+            </div>
+        </template>
+
+
+
+
     </data>
 </odoo>
