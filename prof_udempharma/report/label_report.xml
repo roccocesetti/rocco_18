@@ -131,6 +131,9 @@
             <div class="o_label_sheet o_label_dymo" t-att-style="padding_page">
                 <div class="o_label_full" t-att-style="table_style">
                     <div class= "text-start o_label_small_barcode">
+                       <div class="o_label_name text-center">
+                        <small class="text-nowrap" t-out="name" style="font-size: 1.075em;"/>
+                        </div>
                         <t t-if="barcode_text">
                             <!-- `quiet=0` to remove the left and right margins on the barcode -->
                             <div t-out="barcode_text" style="padding:0" t-options="{'widget': 'barcode', 'quiet': 0, 'symbology': 'auto', 'img_style': barcode_size}"/>
@@ -139,9 +142,7 @@
                             </div>
                         </t>
                     </div>
-                     <div class="o_label_left_column">
-                        <small class="text-nowrap" t-out="name" style="font-size: 0.875em;"/>
-                    </div>
+
 
                     <div class="o_label_left_column">
                             <t t-if="lot">
