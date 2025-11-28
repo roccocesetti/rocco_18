@@ -116,8 +116,9 @@
                             <t t-set="product" t-value="line.product_id"/>
                             <t t-set="barcode" t-value="product.barcode"/>
                             <t t-set="code" t-value="product.default_code"/>
+                            <t t-set="name" t-value="product.name"/>
                             <t t-set="lot" t-value="line.lot_id or False"/>
-                            <t t-set="barcode_text" t-value="product.barcode or product.default_code or product.name"/>
+                            <t t-set="barcode_text" t-value="lot.name or product.barcode or product.default_code or product.name"/>
                             <t t-set="exp_date" t-value="lot and (lot.expiration_date or lot.use_date) or False"/>
                             <t t-call="prof_udempharma.report_productlabel_simplelot1x1"/>
                     </t>
@@ -138,10 +139,10 @@
                             </div>
                         </t>
                     </div>
-
-                    <div class="o_label_left_column">
-                        Codice:<small class="text-nowrap" t-out="code" style="font-size: 0.875em;"/>
+                     <div class="o_label_left_column">
+                        <small class="text-nowrap" t-out="name" style="font-size: 0.875em;"/>
                     </div>
+
                     <div class="o_label_left_column">
                             <t t-if="lot">
                                 Lotto/ns:<small class="text-nowrap" t-out="lot.name" style="font-size: 0.875em;"/>
