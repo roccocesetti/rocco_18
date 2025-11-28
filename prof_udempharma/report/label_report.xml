@@ -132,7 +132,7 @@
                 <div class="o_label_full" t-att-style="table_style">
                     <div class= "text-start o_label_small_barcode">
                        <div class="o_label_name text-center">
-                        <small class="text-nowrap" t-out="name" style="font-size: 1.375em;"/>
+                        <small class="text-nowrap" t-out="name" style="font-size: 1.300em;"/>
                         </div>
                         <t t-if="barcode_text">
                             <!-- `quiet=0` to remove the left and right margins on the barcode -->
