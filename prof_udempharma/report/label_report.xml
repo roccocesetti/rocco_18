@@ -118,7 +118,7 @@
                             <t t-set="code" t-value="product.default_code"/>
                             <t t-set="name" t-value="product.name"/>
                             <t t-set="lot" t-value="line.lot_id or False"/>
-                            <t t-set="barcode_text" t-value="lot.name or product.barcode or product.default_code or product.name"/>
+                            <t t-set="barcode_text" t-value="lot.name or '---'"/>
                             <t t-set="exp_date" t-value="lot and (lot.expiration_date or lot.use_date) or False"/>
                             <t t-call="prof_udempharma.report_productlabel_simplelot1x1"/>
                     </t>
