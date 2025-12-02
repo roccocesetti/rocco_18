@@ -120,7 +120,12 @@
 
                             <t t-set="barcode_text" t-value="(lot.name or '')"/>
                             <t t-set="exp_date" t-value="False"/>
-                            <t t-set="lot" t-value="line.lot_id or False"/>
+                            <t t-set="lot" t-value="False"/>
+                            <t t-set="lot_name" t-value="False"/>
+                            <t t-if="line.lot_id">
+                                    <t t-set="lot" t-value="line.lot_id or False"/>
+                                    <t t-set="lot_name" t-value="line.lot_id.name or False"/>
+                            </t>
                             <t t-if="lot">
                                 <t t-set="exp_date" t-value="((lot.expiration_date or lot.use_date)) or False"/>
                             </t>
@@ -154,8 +159,8 @@
 
 
                     <div class="o_label_left_column">
-                            <t t-if="lot">
-                                Lotto/ns:<small class="text-nowrap" t-out="lot.name" style="font-size: 0.875em;"/>
+                            <t t-if="lot_name">
+                                Lotto/ns:<small class="text-nowrap" t-out="lot_name" style="font-size: 0.875em;"/>
                             </t>
                     </div>
                     <div class="o_label_left_column">
