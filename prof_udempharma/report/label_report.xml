@@ -102,7 +102,7 @@
           <template id="report_productlabel_lot1x1">
             <t t-call="web.html_container">
                 <t t-set="barcode_size" t-value="'width:45.5mm;height:7.5mm'"/>
-                <t t-set="table_style" t-value="'width:100%;height:32mm;margin-top:7mm;'"/>
+                <t t-set="table_style" t-value="'width:100%;height:32mm;margin-top:6mm;'"/>
                 <!--
                 <t t-set="table_style" t-value="'width:100%;height:32mm;'"/>
                 -->
@@ -128,7 +128,7 @@
                             </t>
 
                             <t t-if="lot">
-                                <t t-set="exp_date" t-value="((lot.expiration_date or lot.use_date)) or False"/>
+                                <t t-set="exp_date" t-value="lot.expiration_date or lot.use_date or False"/>
                                 <t t-set="barcode_text" t-value="(lot.name or '')"/>
                             </t>
 
@@ -160,8 +160,6 @@
                             </div>
                         </t>
                     </div>
-
-
                     <div class="o_label_left_column">
                             <t t-if="lot_name">
                                 Lotto/ns:<small class="text-nowrap" t-out="lot_name" style="font-size: 0.875em;"/>
