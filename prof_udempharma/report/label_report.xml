@@ -102,7 +102,7 @@
           <template id="report_productlabel_lot1x1">
             <t t-call="web.html_container">
                 <t t-set="barcode_size" t-value="'width:45.5mm;height:7.5mm'"/>
-                <t t-set="table_style" t-value="'width:100%;height:32mm;margin-top:1mm;'"/>
+                <t t-set="table_style" t-value="'width:100%;height:32mm;margin-top:7mm;'"/>
                 <!--
                 <t t-set="table_style" t-value="'width:100%;height:32mm;'"/>
                 -->
@@ -146,7 +146,7 @@
                        <div class="o_label_name text-center">
                         <small class="text-nowrap" t-out="name" style="font-size: 1.275em;"/>
                         </div>
-                        <div style="height:1mm;">
+                        <div style="height:3mm;">
                         </div>
                         <t t-if="barcode_text">
                             <!-- `quiet=0` to remove the left and right margins on the barcode -->
