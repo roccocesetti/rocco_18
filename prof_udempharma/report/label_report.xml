@@ -118,7 +118,7 @@
                             <t t-set="code" t-value="product.default_code"/>
                             <t t-set="name" t-value="product.name"/>
                             <t t-set="lot" t-value="line.lot_id or False"/>
-                            <t t-set="barcode_text" t-value="(product.default_code or '') + (lot.name or '')"/>
+                            <t t-set="barcode_text" t-value="(lot.name or '')"/>
                             <t t-set="exp_date" t-value="lot and (lot.expiration_date or lot.use_date) or False"/>
                             <t t-call="prof_udempharma.report_productlabel_simplelot1x1"/>
                     </t>
@@ -138,6 +138,8 @@
                         </div>
                         <t t-if="barcode_text">
                             <!-- `quiet=0` to remove the left and right margins on the barcode -->
+                            <div t-out="code" style="padding:0" t-options="{'widget': 'barcode', 'quiet': 0, 'symbology': 'auto', 'img_style': barcode_size}"/>
+                            <div style="height:3mm;"> </div>
                             <div t-out="barcode_text" style="padding:0" t-options="{'widget': 'barcode', 'quiet': 0, 'symbology': 'auto', 'img_style': barcode_size}"/>
                             <div class="o_label_name" style="height:1.7em;background-color: transparent;">
                                 <span t-out="barcode_text"/>
