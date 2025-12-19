@@ -127,7 +127,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "ALTEZZA": "",
                         "PROFONDITA": "",
                         "RITIRO_VOLUMETRICO": "",
-                        "DATA_SPEDIZIONE_RITIRO": order.commitment_date.date() if order.commitment_date else scheduled_date.date() if order.picking_ids else today(),
+                        "DATA_SPEDIZIONE_RITIRO": fields.Date.to_date(order.commitment_date) if order.commitment_date else fields.Date.to_date(scheduled_date) if order.picking_ids else fields.Date.context_today(order),
                         "COL01": "",
                         "COL02": "",
                         "COL03": "",
