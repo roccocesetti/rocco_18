@@ -407,6 +407,35 @@
       </xpath>
     </template>
 
+
+
+ <template id="report_mrp_production_components_add_lots_lot_ids"
+            inherit_id="mrp.report_mrp_production_components">
+
+    <!-- Aggiungo header colonna dopo "Product" -->
+    <xpath expr="//table[contains(@class,'table')]//thead/tr/th[1]" position="after">
+      <th groups="stock.group_production_lot">Lotti</th>
+    </xpath>
+
+    <!-- Aggiungo cella dopo la colonna prodotto -->
+    <xpath expr="//table[contains(@class,'table')]//tbody/tr/td[1]" position="after">
+      <td groups="stock.group_production_lot">
+        <t t-set="lot_names"
+           t-value="raw_line.move_line_ids.filtered(lambda ml: ml.lot_id).mapped('lot_id.name')"/>
+        <t t-if="lot_names">
+          <span t-esc="', '.join(list(dict.fromkeys(lot_names)))"/>
+        </t>
+        <t t-else="">
+          <span>-</span>
+        </t>
+      </td>
+    </xpath>
+
+  </template>
+
+
+
+
      </data>
 
 
