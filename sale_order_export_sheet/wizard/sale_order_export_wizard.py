@@ -120,7 +120,7 @@ class SaleOrderExportWizard(models.TransientModel):
                         "NOTE1_RITIRO":  "",
                         "ID_LDV": "",
                         "NUMERO_RIFERIMENTO_SPEDIZIONE": order.name or pick.origin or "",
-                        "IDENTIFICATIVO_COLLO": pick.name or pick.origin or "",
+                        "IDENTIFICATIVO_COLLO": order.name or pick.origin or "",
                         "NUMERO_COLLI": 1,
                         "PESO_COLLO": 1000,
                         "LARGHEZZA": "",
