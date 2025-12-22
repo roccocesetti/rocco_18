@@ -426,9 +426,10 @@
           <t t-foreach="lots" t-as="lot" t-key="lot.id">
             <span t-esc="lot.name"/>
             <t t-if="lot.expiration_date">
-              <span> (scad.: </span>
-              <span t-esc="format_date(env, lot.expiration_date)"/>
-              <span>)</span>
+                <span> (scad.: </span>
+                <t t-set="exp" t-value="lot.expiration_date"/>
+                <span t-esc="exp.strftime('%d/%m/%Y') if hasattr(exp, 'strftime') else exp"/>
+                <span>)</span>
             </t>
             <t t-if="not loop.last">, </t>
           </t>
