@@ -409,21 +409,29 @@
 
 
 
- <template id="report_mrp_production_components_add_lots_lot_ids"
+   <template id="report_mrp_production_components_add_lots_and_exp"
             inherit_id="mrp.report_mrp_production_components">
 
-    <!-- Aggiungo header colonna dopo "Product" -->
+    <!-- Header: dopo Product -->
     <xpath expr="//table[contains(@class,'table')]//thead/tr/th[1]" position="after">
-      <th groups="stock.group_production_lot">Lotti</th>
+      <th groups="stock.group_production_lot">Lotti / Scadenza</th>
     </xpath>
 
-    <!-- Aggiungo cella dopo la colonna prodotto -->
+    <!-- Body: dopo colonna Product -->
     <xpath expr="//table[contains(@class,'table')]//tbody/tr/td[1]" position="after">
       <td groups="stock.group_production_lot">
-        <t t-set="lot_names"
-           t-value="raw_line.move_line_ids.filtered(lambda ml: ml.lot_id).mapped('lot_id.name')"/>
-        <t t-if="lot_names">
-          <span t-esc="', '.join(list(dict.fromkeys(lot_names)))"/>
+        <!-- lotti usati su move lines -->
+        <t t-set="lots" t-value="raw_line.move_line_ids.mapped('lot_id').filtered(lambda l: l)"/>
+        <t t-if="lots">
+          <t t-foreach="lots" t-as="lot" t-key="lot.id">
+            <span t-esc="lot.name"/>
+            <t t-if="lot.expiration_date">
+              <span> (scad.: </span>
+              <span t-esc="format_date(env, lot.expiration_date)"/>
+              <span>)</span>
+            </t>
+            <t t-if="not loop.last">, </t>
+          </t>
         </t>
         <t t-else="">
           <span>-</span>
@@ -433,6 +441,24 @@
 
   </template>
 
+
+<odoo>
+  <record id="paperformat_mrp_components_landscape" model="report.paperformat">
+    <field name="name">MRP Components - Landscape</field>
+    <field name="default" eval="False"/>
+    <field name="format">A4</field>
+    <field name="orientation">Landscape</field>
+
+    <!-- margini (mm) -->
+    <field name="margin_top">10</field>
+    <field name="margin_bottom">10</field>
+    <field name="margin_left">8</field>
+    <field name="margin_right">8</field>
+
+    <field name="header_line" eval="False"/>
+    <field name="dpi">90</field>
+  </record>
+</odoo>
 
 
 
