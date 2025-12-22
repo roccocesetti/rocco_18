@@ -427,9 +427,10 @@
             <span t-esc="lot.name"/>
             <t t-if="lot.expiration_date">
                 <span> (scad.: </span>
-                <t t-set="exp" t-value="lot.expiration_date"/>
-                <span t-esc="exp.strftime('%d/%m/%Y') if hasattr(exp, 'strftime') else exp"/>
-                <span>)</span>
+
+  <span t-field="lot.expiration_date" t-options="{'widget': 'date'}"/>
+  <span>)</span>
+               
             </t>
             <t t-if="not loop.last">, </t>
           </t>
