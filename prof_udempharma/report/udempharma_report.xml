@@ -430,7 +430,7 @@
 
   <span t-field="lot.expiration_date" t-options="{'widget': 'date'}"/>
   <span>)</span>
-               
+
             </t>
             <t t-if="not loop.last">, </t>
           </t>
