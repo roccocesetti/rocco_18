@@ -361,7 +361,7 @@ class MrpStockReport(models.TransientModel):
                 else:
                     lot = Lot.browse(lot_id)
                 line['expiration_date'] = (
-                        lot.expiration_date or lot.use_date or lot.life_date or False
+                        lot.expiration_date or lot.use_date or False
                 )
 
         return result
