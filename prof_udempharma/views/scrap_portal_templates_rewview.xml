@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="portal_my_home_scrap_fix_svg"
+          inherit_id="portal.portal_my_home"
+          priority="90">
+
+  <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+    <a class="o_portal_docs_link d-flex align-items-center gap-2"
+       href="/my/scrap">
+      <img t-att-src="'/dev_scrap_order_portal/static/description/bag.svg'"
+           alt="Scrap"
+           style="width:24px;height:24px;"/>
+      <span>Scrap</span>
+    </a>
+  </xpath>
+
+</template>
+</odoo>

@@ -9,12 +9,13 @@
     'description': """
 Personalizzazione allegato pdf analisi e modifica data di scadenza lotto
     """,
-    'depends': ['stock', 'product_expiry','mrp'],
+    'depends': ['stock', 'product_expiry','mrp',],
     'data': [
         'report/udempharma_report.xml',
         'report/label_report.xml',
         'views/stock_move_line_views.xml',
         'views/mrp_routing_views.xml',
+
 
         #'views/account_invoice_views.xml',
         #'data/udempharma_template.xml',
