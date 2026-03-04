@@ -105,7 +105,7 @@
                 <thead>
                   <tr>
                   <th>Productto</th>
-                  <th class="text-left">Richisti</th>
+                  <th class="text-left">Richiesti</th>
                   <th class="text-left">Fatto</th>
                   <th class="text-left">UoM</th>
                   <th class="text-left">Disponibilità</th>
@@ -138,7 +138,7 @@
             </div>
 
             <div class="mt-3">
-  <h5 class="mb-2">Dettaglio Movementi</h5>
+  <h5 class="mb-2">Dettaglio Movimenti</h5>
   <t t-if="picking.move_line_ids">
     <table class="table table-sm">
       <thead>
