@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="rule_stock_picking_portal_partner" model="ir.rule">
+    <field name="name">Portal: Pickings of my company</field>
+    <field name="model_id" ref="stock.model_stock_picking"/>
+    <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+    <field name="perm_read" eval="1"/>
+    <field name="perm_write" eval="0"/>
+    <field name="perm_create" eval="0"/>
+    <field name="perm_unlink" eval="0"/>
+    <field name="domain_force">[('partner_id.commercial_partner_id','=',user.partner_id.commercial_partner_id.id)]</field>
+  </record>
+
+  <record id="rule_stock_move_portal_through_picking" model="ir.rule">
+    <field name="name">Portal: Moves linked to my pickings</field>
+    <field name="model_id" ref="stock.model_stock_move"/>
+    <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+    <field name="perm_read" eval="1"/>
+    <field name="perm_write" eval="0"/>
+    <field name="perm_create" eval="0"/>
+    <field name="perm_unlink" eval="0"/>
+    <field name="domain_force">[('picking_id.partner_id.commercial_partner_id','=',user.partner_id.commercial_partner_id.id)]</field>
+  </record>
+
+  <record id="rule_stock_move_line_portal_through_picking" model="ir.rule">
+    <field name="name">Portal: Move lines linked to my pickings</field>
+    <field name="model_id" ref="stock.model_stock_move_line"/>
+    <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+    <field name="perm_read" eval="1"/>
+    <field name="perm_write" eval="0"/>
+    <field name="perm_create" eval="0"/>
+    <field name="perm_unlink" eval="0"/>
+    <field name="domain_force">[('picking_id.partner_id.commercial_partner_id','=',user.partner_id.commercial_partner_id.id)]</field>
+  </record>
+</odoo>
