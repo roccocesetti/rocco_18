@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-  <template id="portal_my_home_pickings" name="Portal My Home : Pickings" inherit_id="portal.portal_my_home" priority="60" customize_show="True">
-    <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
-      <t t-call="portal.portal_docs_entry">
-        <t t-set="title">Movimenti  </t>
-        <t t-set="url" t-value="'/my/pickings'"/>
-        <t t-set="placeholder_count" t-value="'picking_count'"/>
-        <t t-set="text">Movimentazione prodotti</t>
-<t t-set="icon" t-value="'/stock/static/img/replenishment.svg'"/>
+ <template id="portal_my_home_pickings"
+          name="Portal My Home : Pickings"
+          inherit_id="portal.portal_my_home"
+          priority="60"
+          customize_show="True">
+  <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+    <a class="o_portal_docs_link d-flex align-items-center gap-2" href="/my/pickings">
+      <img t-att-src="'/stock/static/img/replenishment.svg'"
+           alt="Movimenti"
+           style="width:24px;height:24px;"/>
+      <span>Movimenti</span>
 
+      <!-- Count (se vuoi mantenerlo) -->
+      <t t-if="picking_count">
+        <span class="badge rounded-pill bg-secondary ms-auto">
+          <t t-esc="picking_count"/>
+        </span>
       </t>
-    </xpath>
-  </template>
-
+    </a>
+    <div class="text-muted small ms-4">Movimentazione prodotti</div>
+  </xpath>
+</template>
   <template id="portal_breadcrumbs_pickings" name="Portal layout : Pickings breadcrumbs" inherit_id="portal.portal_breadcrumbs" priority="60">
     <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
       <li t-attf-class="breadcrumb-item #{'active' if page_name == 'picking' and not picking else ''}">
@@ -180,4 +189,65 @@
       </div>
     </xpath>
   </template>
+
+<template id="portal_my_home_products"
+          name="Prodotti"
+          inherit_id="portal.portal_my_home"
+          priority="65"
+          customize_show="True">
+  <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+    <a class="o_portal_docs_link d-flex align-items-center gap-2" href="/my/products">
+      <img t-att-src="'/stock/static/img/replenishment.svg'"
+           alt="Prodotti"
+           style="width:24px;height:24px;"/>
+      <span>Prodotti</span>
+      <small class="text-muted ms-2">I tuoi Prodotti</small>
+    </a>
+  </xpath>
+</template>
+
+
+<template id="portal_my_products" name="My Products (from Pickings)">
+  <t t-call="portal.portal_layout">
+    <t t-set="breadcrumbs_searchbar" t-value="True"/>
+    <t t-call="portal.portal_searchbar">
+      <t t-set="title">Prodotti</t>
+    </t>
+
+    <t t-if="not product_rows">
+      <p>Nessun prodotto trovato </p>
+    </t>
+
+    <t t-if="product_rows" t-call="portal.portal_table">
+      <thead>
+        <tr>
+          <th>Codice</th>
+          <th class="text-left">Nome</th>
+          <th class="text-left">Disponibilità</th>
+          <th class="text-left">UoM</th>
+          <th class="text-left">Richiesto (pickings)</th>
+          <th class="text-left">Fatto (pickings)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <t t-foreach="product_rows" t-as="r">
+          <tr>
+            <td><t t-esc="r['code']"/></td>
+            <td class="text-left"><t t-esc="r['name']"/></td>
+            <td class="text-left"><t t-esc="r['qty_available']"/></td>
+            <td class="text-left"><t t-esc="r['uom']"/></td>
+            <td class="text-left"><t t-esc="r['qty_demand']"/></td>
+            <td class="text-left"><t t-esc="r['qty_done']"/></td>
+          </tr>
+        </t>
+      </tbody>
+    </t>
+
+    <t t-if="pager">
+      <t t-call="website.pager"/>
+    </t>
+  </t>
+</template>
+
+
 </odoo>
