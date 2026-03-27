@@ -79,6 +79,38 @@ class MrpProductionOverviewWizard(models.TransientModel):
         }
 
 
+    @api.model
+    def action_reorder_components_from_productions(self):
+        active_ids = self.env.context.get('active_ids', [])
+        if not active_ids:
+            raise UserError(_("Seleziona almeno un ordine di produzione."))
+
+        productions = self.env['mrp.production'].browse(active_ids).exists()
+        if not productions:
+            raise UserError(_("Nessun ordine di produzione valido trovato."))
+
+        raw_moves = productions.mapped('move_raw_ids').filtered(
+            lambda m: m.state not in ('done', 'cancel') and m.product_id
+        )
+
+        if not raw_moves:
+            raise UserError(_("Nessun componente trovato sugli ordini selezionati."))
+
+        products = raw_moves.mapped('product_id')
+        if not products:
+            raise UserError(_("Nessun prodotto componente trovato."))
+
+        action = self.env['stock.warehouse.orderpoint'].with_context(
+            search_default_filter_to_reorder=True,
+            search_default_filter_not_snoozed=True,
+            default_trigger='manual',
+            searchpanel_default_trigger='manual',
+        ).action_open_orderpoints()
+
+        action['name'] = _('Riordina componenti MO')
+        action['domain'] = [('product_id', 'in', products.ids)]
+        action['target'] = 'current'
+        return action
 
 class MrpProductionOverviewWizardLine(models.TransientModel):
     _name = 'mrp.production.overview.wizard.line'
